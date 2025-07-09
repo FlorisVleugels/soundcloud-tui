@@ -1,3 +1,4 @@
+mod auth;
 mod ui;
 mod handlers;
 mod events;

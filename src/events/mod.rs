@@ -4,6 +4,7 @@ pub fn handle() -> std::io::Result<bool> {
     match event::read()? {
         Event::Key(key) if key.kind == KeyEventKind::Press => match key.code {
             KeyCode::Char('q') => return Ok(true),
+            KeyCode::Char('/') => return Ok(true),
             // handle other key events
             _ => {}
         },
