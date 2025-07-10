@@ -1,12 +1,16 @@
+mod app;
 mod auth;
 mod ui;
 mod handlers;
 mod events;
 
+use app::App;
+
 pub fn run(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
+    let mut app = App::init();
     loop {
-        terminal.draw(|frame| ui::draw_main_layout(frame))?;
-        if events::handle()? {
+        terminal.draw(|frame| ui::render(frame, &mut app))?;
+        if events::handle(&mut app)? {
             break Ok(());
         }
     }
