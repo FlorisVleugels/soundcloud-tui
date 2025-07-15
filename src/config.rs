@@ -12,7 +12,7 @@ pub struct AppConfig {
 pub struct ClientConfig {
     client_id: String,
     client_secret: String,
-    client_code: String,
+    client_code: Option<String>,
 }
 
 const CONFIG_DIR: &str = ".config";
@@ -24,7 +24,6 @@ impl ClientConfig {
         // if get client config give error, make new, if fs: error
         let config = Self::get_client_config().unwrap();
 
-        // handle serde error
         let config: Self = serde_yaml::from_value(config).unwrap();
 
         config
