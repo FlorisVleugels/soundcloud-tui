@@ -6,16 +6,14 @@ mod handlers;
 mod events;
 
 use app::App;
-use std::thread;
 use config::ClientConfig;
+use std::thread;
 
 pub fn run(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
-    ClientConfig::init();
-
-    thread::spawn(|| {
-        auth::serve();
+    let handle = thread::spawn(|| {
+        ClientConfig::init()
     });
-
+    //let client_config = ClientConfig::init();
     let mut app = App::init();
     loop {
         terminal.draw(|frame| ui::render(frame, &mut app))?;
