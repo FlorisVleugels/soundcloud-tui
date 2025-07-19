@@ -1,12 +1,11 @@
 mod app;
-mod auth;
-mod config;
 mod ui;
 mod handlers;
 mod events;
+mod soundcloud;
 
 use app::App;
-use config::ClientConfig;
+use soundcloud::config::ClientConfig;
 use std::thread;
 
 pub fn run(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {

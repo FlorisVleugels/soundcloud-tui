@@ -3,7 +3,7 @@ use std::{fs,
     net::{TcpListener, TcpStream}
 };
 
-use crate::config::ClientConfig;
+use super::config::ClientConfig;
 
 pub fn serve(client_config: &mut ClientConfig) {
     let listener = TcpListener::bind("127.0.0.1:3000").unwrap();

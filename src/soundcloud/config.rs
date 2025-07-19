@@ -13,8 +13,8 @@ pub struct AppConfig {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ClientConfig {
-    client_id: String,
-    client_secret: String,
+    pub client_id: String,
+    pub client_secret: String,
     client_code: Option<String>,
 }
 
