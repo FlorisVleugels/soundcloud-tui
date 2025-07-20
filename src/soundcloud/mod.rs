@@ -1,4 +1,4 @@
-mod auth;
-mod client;
-pub mod config;
 mod api;
+mod auth;
+pub mod client;
+pub mod config;

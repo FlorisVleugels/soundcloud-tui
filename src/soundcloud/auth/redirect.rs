@@ -3,7 +3,7 @@ use std::{fs,
     net::{TcpListener, TcpStream}
 };
 
-use super::config::ClientConfig;
+use super::super::config::ClientConfig;
 
 pub fn serve(client_config: &mut ClientConfig) {
     let listener = TcpListener::bind("127.0.0.1:3000").unwrap();
@@ -25,7 +25,6 @@ fn handle_connection(mut stream: TcpStream, client_config: &mut ClientConfig) {
         .next()
         .unwrap()
         .unwrap();
-
 
     let (status_line, filename) = match &request_line[0..10] {
         "GET /?code" => {

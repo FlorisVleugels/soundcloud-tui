@@ -1,15 +1,16 @@
 use reqwest::Error;
 use std::collections::HashMap;
 
+use super::client::{AccessToken, RefreshToken};
 use super::config::ClientConfig;
 
 const BASE_URL: &str = "https://api.soundcloud.com/";
-const AUTH_URL: &str = "https://secure.soundcloud.com/oauth/token";
+const TOKEN_URL: &str = "https://secure.soundcloud.com/oauth/token";
 
 pub async fn oauth_token(
     config: &ClientConfig,
     client: &reqwest::Client
-) -> Result<(String, String), Error> {
+) -> Result<(AccessToken, RefreshToken), Error> {
     let mut params = HashMap::new();
     params.insert("grant_type", "authorization_code");
     params.insert("client_id", &config.client_id[..]);
@@ -19,11 +20,11 @@ pub async fn oauth_token(
     params.insert("code", "");
 
     let response = client
-        .post(AUTH_URL)
+        .post(TOKEN_URL)
         .header("accept", "application/json; charset=utf-8")
         .form(&params)
         .send()
         .await;
 
-    Ok((String::from(""), String::from("")))
+    Ok((AccessToken(String::from("")), RefreshToken(String::from(""))))
 }

@@ -1,18 +1,19 @@
 mod app;
-mod ui;
-mod handlers;
 mod events;
+mod handlers;
 mod soundcloud;
+mod ui;
 
 use app::App;
-use soundcloud::config::ClientConfig;
+use soundcloud::client::Client;
 use std::thread;
 
 pub fn run(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
+    //make arc mutex for client and then pass it to app so can use it
     let handle = thread::spawn(|| {
-        ClientConfig::init()
+        Client::init();
     });
-    //let client_config = ClientConfig::init();
+
     let mut app = App::init();
     loop {
         terminal.draw(|frame| ui::render(frame, &mut app))?;

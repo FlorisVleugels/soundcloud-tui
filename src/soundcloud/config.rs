@@ -5,8 +5,6 @@ use std::{
 use serde::{Serialize, Deserialize};
 use serde_yaml::Value;
 use dirs;
-use super::auth;
-use std::thread;
 
 pub struct AppConfig {
 }
@@ -15,15 +13,19 @@ pub struct AppConfig {
 pub struct ClientConfig {
     pub client_id: String,
     pub client_secret: String,
-    client_code: Option<String>,
+    pub client_code: Option<String>,
+    pub redirect_uri: Option<String>,
+    pub code_verifier: Option<String>,
 }
 
 const CONFIG_DIR: &str = ".config";
 const APP_CONFIG_DIR: &str = "soundcloud-tui";
 const CLIENT_CONFIG_FILE: &str = "client.yml";
 
+const AUTH_URL: &str = "https://secure.soundcloud.com/authorize/";
+
 impl ClientConfig {
-    pub fn init() -> Self {
+    pub fn load() -> Self {
         // if get client config give error, make new, if fs: error
         let config_path = Self::path();
 
@@ -33,17 +35,9 @@ impl ClientConfig {
 
         let config = Value::deserialize(d).unwrap();
 
-        let mut value: Self = serde_yaml::from_value(config).unwrap();
+        let value: Self = serde_yaml::from_value(config).unwrap();
 
-        if let Some(_) = value.client_code {
-            value
-        } else {
-            let handle = thread::spawn(move || {
-                auth::serve(&mut value);
-                value
-            });
-            handle.join().unwrap()
-        }
+        value
     }
 
     fn path() -> PathBuf {
@@ -78,5 +72,21 @@ impl ClientConfig {
             .open(config_path)
             .unwrap();
         serde_yaml::to_writer(file, &self).unwrap();
+    }
+
+    pub fn auth_url(&self, code_challenge: &String) -> String {
+        format!("{}
+            ?clientid={}
+            &redirect_uri={:?}
+            &response_type=code
+            &code_challenge={}
+            &code_challenge_method=S256
+            &state={:?}", 
+            AUTH_URL, 
+            self.client_id, 
+            self.redirect_uri, 
+            code_challenge, 
+            self.code_verifier
+        )
     }
 }

@@ -1,25 +1,27 @@
 use std::fs;
 use super::app::{App, InputMode};
 use ratatui::{
-    layout::{Constraint, Layout, Position, Rect},
+    layout::{Layout, Position, Rect},
     style::{Color, Style},
     text::Text,
-    widgets::{Block, Paragraph, Padding},
+    widgets::{Block, Paragraph, Padding, Wrap},
     Frame,
 };
+use constants::*;
 
-const MAIN_CONSTRAINTS: [Constraint; 3] = [Constraint::Length(3), Constraint::Min(0), Constraint::Length(6)];
-const TOP_BAR_CONSTRAINTS: [Constraint; 2] = [Constraint::Percentage(95), Constraint::Percentage(5)];
-const BODY_CONSTRAINTS: [Constraint; 2] = [Constraint::Percentage(85), Constraint::Percentage(15)];
-const BODY_BAR_CONSTRAINTS: [Constraint; 2] = [Constraint::Ratio(1,2); 2];
+mod constants;
 
 pub fn render(frame: &mut Frame, app: &mut App) {
     let vertical = Layout::vertical(MAIN_CONSTRAINTS);
     let [title_area, main_area, status_area] = vertical.areas(frame.area());
 
-    draw_top_bar(frame, app, title_area);
-    draw_body(frame, main_area);
-    draw_status_bar(frame, status_area);
+    if app.is_authenticated {
+        draw_top_bar(frame, app, title_area);
+        draw_body(frame, main_area);
+        draw_status_bar(frame, status_area);
+    } else {
+        draw_auth_link(frame);
+    }
 }
 
 fn draw_top_bar(frame: &mut Frame, app: &mut App, rect: Rect) {
@@ -74,4 +76,18 @@ fn draw_search_box(frame: &mut Frame, app: &App, rect: Rect) {
                 rect.y + 1,
         )),
     }
+}
+
+fn draw_auth_link(frame: &mut Frame) {
+    let auth_url = "https://soundcloud.com";
+    let paragraph = Paragraph::new(format!(
+            "{}\n\n\n\n\nTo continue, please authorize soundcloud-tui by visiting the following URL in your browser:\n\n\n{}",
+            HEADER_ASCII, auth_url))
+        .centered()
+        .wrap(Wrap { trim: false })
+        .block(Block::bordered()
+            .title("soundcloud-tui")
+            .padding(Padding::new(50, 50, 6, 0))
+        );
+    frame.render_widget(paragraph, frame.area());
 }
