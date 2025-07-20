@@ -13,8 +13,8 @@ pub struct AppConfig {
 pub struct ClientConfig {
     pub client_id: String,
     pub client_secret: String,
+    //pub redirect_uri: String,
     pub client_code: Option<String>,
-    pub redirect_uri: Option<String>,
     pub code_verifier: Option<String>,
 }
 
@@ -22,7 +22,7 @@ const CONFIG_DIR: &str = ".config";
 const APP_CONFIG_DIR: &str = "soundcloud-tui";
 const CLIENT_CONFIG_FILE: &str = "client.yml";
 
-const AUTH_URL: &str = "https://secure.soundcloud.com/authorize/";
+const AUTH_URL: &str = "https://secure.soundcloud.com/authorize";
 
 impl ClientConfig {
     pub fn load() -> Self {
@@ -75,18 +75,23 @@ impl ClientConfig {
     }
 
     pub fn auth_url(&self, code_challenge: &String) -> String {
-        format!("{}
-            ?clientid={}
-            &redirect_uri={:?}
-            &response_type=code
-            &code_challenge={}
-            &code_challenge_method=S256
-            &state={:?}", 
+        let code_verifier = match &self.code_verifier {
+            Some(code) => code,
+            None => panic!()
+        };
+
+        format!("{}\
+            ?clientid={}\
+            &redirect_uri={}\
+            &response_type=code\
+            &code_challenge={}\
+            &code_challenge_method=S256\
+            &state={}",
             AUTH_URL, 
             self.client_id, 
-            self.redirect_uri, 
+            "http://localhost:3000", 
             code_challenge, 
-            self.code_verifier
+            code_verifier
         )
     }
 }

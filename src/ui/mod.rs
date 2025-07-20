@@ -1,4 +1,4 @@
-use std::fs;
+use std::{fs, sync::mpsc::Receiver};
 use super::app::{App, InputMode};
 use ratatui::{
     layout::{Layout, Position, Rect},
@@ -11,7 +11,7 @@ use constants::*;
 
 mod constants;
 
-pub fn render(frame: &mut Frame, app: &mut App) {
+pub fn render(frame: &mut Frame, app: &mut App, rx: &Receiver<String>) {
     let vertical = Layout::vertical(MAIN_CONSTRAINTS);
     let [title_area, main_area, status_area] = vertical.areas(frame.area());
 
@@ -20,7 +20,8 @@ pub fn render(frame: &mut Frame, app: &mut App) {
         draw_body(frame, main_area);
         draw_status_bar(frame, status_area);
     } else {
-        draw_auth_link(frame);
+        let received = rx.recv().unwrap();
+        draw_auth_link(frame, &received[..]);
     }
 }
 
@@ -78,8 +79,8 @@ fn draw_search_box(frame: &mut Frame, app: &App, rect: Rect) {
     }
 }
 
-fn draw_auth_link(frame: &mut Frame) {
-    let auth_url = "https://soundcloud.com";
+fn draw_auth_link(frame: &mut Frame, auth_url: &str) {
+    // replace padding with borderless nested block of smaller size
     let paragraph = Paragraph::new(format!(
             "{}\n\n\n\n\nTo continue, please authorize soundcloud-tui by visiting the following URL in your browser:\n\n\n{}",
             HEADER_ASCII, auth_url))

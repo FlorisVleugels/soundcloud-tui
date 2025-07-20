@@ -1,3 +1,5 @@
+use std::sync::mpsc::Sender;
+
 use super::config::ClientConfig;
 use super::api;
 use super::auth::{redirect, pkce::PKCE};
@@ -9,22 +11,25 @@ pub struct Client {
     config: ClientConfig,
     access_token: AccessToken,
     refresh_token: RefreshToken,
-    client: reqwest::Client
+    client: reqwest::Client,
 }
 
 impl Client {
-    pub fn init() -> Self {
+    pub fn init(tx: Sender<String>) -> Self {
         let mut config = ClientConfig::load();
         let client = reqwest::Client::new();
 
-        // this and verifier need to be some()
-        if let None = &config.client_code {
-            let keys = PKCE::new();
-            config.code_verifier = Some(keys.verifier);
-            let auth_url = config.auth_url(&keys.challenge);
-            
-            redirect::serve(&mut config);
-        }
+        match (&config.client_code, &config.code_verifier) {
+            (Some(_), Some(_)) => (), 
+            _ => {
+                let keys = PKCE::new();
+                config.code_verifier = Some(keys.verifier);
+                let auth_url = config.auth_url(&keys.challenge);
+                tx.send(auth_url).unwrap();
+
+                redirect::serve(&mut config);
+            }
+        };
 
         //let (access_token, refresh_token) = Self::fetch_tokens(&config, &client).await;
         let (access_token, refresh_token) = (AccessToken(String::from("asdf")), RefreshToken(String::from("asdf")));
@@ -33,7 +38,7 @@ impl Client {
             config,
             access_token,
             refresh_token,
-            client
+            client,
         }
     }
     
