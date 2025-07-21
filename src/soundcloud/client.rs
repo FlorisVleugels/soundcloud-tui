@@ -14,20 +14,30 @@ pub struct Client {
     client: reqwest::Client,
 }
 
+pub enum Message {
+    AuthUrl(String),
+    Authenticated(bool)
+}
+
 impl Client {
-    pub fn init(tx: Sender<String>) -> Self {
+    pub async fn init(tx: Sender<Message>) -> Self {
         let mut config = ClientConfig::load();
         let client = reqwest::Client::new();
 
         match (&config.client_code, &config.code_verifier) {
-            (Some(_), Some(_)) => (), 
+            (Some(_), Some(_)) => {
+                tx.send(Message::Authenticated(true)).unwrap();
+            }, 
             _ => {
+                // change to auth session init, with result return, then message
                 let keys = PKCE::new();
                 config.code_verifier = Some(keys.verifier);
+
                 let auth_url = config.auth_url(&keys.challenge);
-                tx.send(auth_url).unwrap();
+                tx.send(Message::AuthUrl(auth_url)).unwrap();
 
                 redirect::serve(&mut config);
+                tx.send(Message::Authenticated(true)).unwrap();
             }
         };
 
