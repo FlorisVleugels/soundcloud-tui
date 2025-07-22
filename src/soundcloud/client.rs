@@ -1,8 +1,5 @@
-use std::sync::mpsc::Sender;
-
 use super::config::ClientConfig;
 use super::api;
-use super::auth::{redirect, pkce::PKCE};
 
 pub struct AccessToken(pub String);
 pub struct RefreshToken(pub String);
@@ -14,32 +11,9 @@ pub struct Client {
     client: reqwest::Client,
 }
 
-pub enum Message {
-    AuthUrl(String),
-    Authenticated(bool)
-}
-
 impl Client {
-    pub async fn init(tx: Sender<Message>) -> Self {
-        let mut config = ClientConfig::load();
+    pub fn init(config: ClientConfig) -> Self {
         let client = reqwest::Client::new();
-
-        match (&config.client_code, &config.code_verifier) {
-            (Some(_), Some(_)) => {
-                tx.send(Message::Authenticated(true)).unwrap();
-            }, 
-            _ => {
-                // change to auth session init, with result return, then message
-                let keys = PKCE::new();
-                config.code_verifier = Some(keys.verifier);
-
-                let auth_url = config.auth_url(&keys.challenge);
-                tx.send(Message::AuthUrl(auth_url)).unwrap();
-
-                redirect::serve(&mut config);
-                tx.send(Message::Authenticated(true)).unwrap();
-            }
-        };
 
         //let (access_token, refresh_token) = Self::fetch_tokens(&config, &client).await;
         let (access_token, refresh_token) = (AccessToken(String::from("asdf")), RefreshToken(String::from("asdf")));

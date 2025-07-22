@@ -2,7 +2,6 @@ pub struct App {
     pub input: String,
     pub character_index: usize,
     pub input_mode: InputMode,
-    pub is_authenticated: bool,
 }
 
 pub enum InputMode {
@@ -16,7 +15,6 @@ impl App {
             input: String::new(),
             input_mode: InputMode::Normal,
             character_index: 0,
-            is_authenticated: false,
         }
     }
 

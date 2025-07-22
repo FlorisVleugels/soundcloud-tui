@@ -74,6 +74,13 @@ impl ClientConfig {
         serde_yaml::to_writer(file, &self).unwrap();
     }
 
+    pub fn is_complete(&self) -> bool {
+        match (&self.client_code, &self.code_verifier) {
+            (Some(_), Some(_)) => true,
+            _ => false
+        }
+    }
+
     pub fn auth_url(&self, code_challenge: &String) -> String {
         let code_verifier = match &self.code_verifier {
             Some(code) => code,

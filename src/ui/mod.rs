@@ -15,12 +15,13 @@ pub fn render(frame: &mut Frame, app: &mut App, auth_url: &Option<String>) {
     let vertical = Layout::vertical(MAIN_CONSTRAINTS);
     let [title_area, main_area, status_area] = vertical.areas(frame.area());
 
-    if app.is_authenticated {
-        draw_top_bar(frame, app, title_area);
-        draw_body(frame, main_area);
-        draw_status_bar(frame, status_area);
-    } else {
-        draw_auth_link(frame, auth_url);
+    match auth_url {
+        None => {
+            draw_top_bar(frame, app, title_area);
+            draw_body(frame, main_area);
+            draw_status_bar(frame, status_area);
+        },
+        Some(url) => draw_auth_link(frame, url)
     }
 }
 
@@ -78,21 +79,16 @@ fn draw_search_box(frame: &mut Frame, app: &App, rect: Rect) {
     }
 }
 
-fn draw_auth_link(frame: &mut Frame, auth_url: &Option<String>) {
-    match auth_url {
-        Some(auth_url) => {
-            let paragraph = Paragraph::new(format!(
-                    "{}\n\n\n\n\nTo continue, please authorize soundcloud-tui by \
-                    visiting the following URL in your browser:\n\n\n{}",
-                    HEADER_ASCII, auth_url))
-                .centered()
-                .wrap(Wrap { trim: false })
-                .block(Block::bordered()
-                    .title("soundcloud-tui")
-                    .padding(Padding::new(50, 50, 6, 0))
-                );
-            frame.render_widget(paragraph, frame.area());
-        },
-        None => ()
-    }
+fn draw_auth_link(frame: &mut Frame, auth_url: &String) {
+    let paragraph = Paragraph::new(format!(
+            "{}\n\n\n\n\nTo continue, please authorize soundcloud-tui by \
+            visiting the following URL in your browser:\n\n\n{}",
+            HEADER_ASCII, auth_url))
+        .centered()
+        .wrap(Wrap { trim: false })
+        .block(Block::bordered()
+            .title("soundcloud-tui")
+            .padding(Padding::new(50, 50, 6, 0))
+        );
+    frame.render_widget(paragraph, frame.area());
 }
