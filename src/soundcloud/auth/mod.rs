@@ -18,6 +18,5 @@ pub async fn run(mut config: ClientConfig, tx: Sender<Message>) {
         let auth_url = config.auth_url(&keys.challenge);
         tx.send(Message::AuthUrl(auth_url)).unwrap();
 
-        redirect::serve(&mut config);
-        tx.send(Message::Authenticated(true)).unwrap();
+        redirect::serve(&mut config, &tx);
 }

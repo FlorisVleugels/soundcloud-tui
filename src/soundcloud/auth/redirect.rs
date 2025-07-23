@@ -1,11 +1,11 @@
 use std::{fs, 
     io::{BufRead, BufReader, Write},
-    net::{TcpListener, TcpStream}
+    net::{TcpListener, TcpStream}, sync::mpsc::Sender
 };
 
-use super::super::config::ClientConfig;
+use super::{super::config::ClientConfig, Message};
 
-pub fn serve(client_config: &mut ClientConfig) {
+pub fn serve(client_config: &mut ClientConfig, tx: &Sender<Message>) {
     let listener = TcpListener::bind("127.0.0.1:3000").unwrap();
 
      for stream in listener.incoming() {
@@ -13,12 +13,16 @@ pub fn serve(client_config: &mut ClientConfig) {
 
          match client_config.client_code() {
              Some(_) => break, 
-             None => handle_connection(stream, client_config)
+             None => handle_connection(stream, client_config, tx)
          }
      }
 }
 
-fn handle_connection(mut stream: TcpStream, client_config: &mut ClientConfig) {
+fn handle_connection(
+    mut stream: TcpStream,
+    client_config: &mut ClientConfig,
+    tx: &Sender<Message>
+    ) {
     let buf_reader = BufReader::new(&stream);
     let request_line = buf_reader
         .lines()
@@ -30,6 +34,7 @@ fn handle_connection(mut stream: TcpStream, client_config: &mut ClientConfig) {
         "GET /?code" => {
             let code = fetch_client_code(&request_line);
             client_config.set_client_code(code);
+            tx.send(Message::Authenticated(true)).unwrap();
             ("HTTP/1.1 200 OK", "src/static/redirect.html")
         },
         _ =>  ("HTTP/1.1 400 BAD REQUEST", "src/static/error.html")

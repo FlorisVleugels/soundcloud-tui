@@ -5,6 +5,7 @@ mod soundcloud;
 mod ui;
 
 use std::sync::mpsc;
+use tokio::task;
 
 use app::App;
 use soundcloud::{
@@ -12,7 +13,6 @@ use soundcloud::{
     client::Client,
     config::ClientConfig
 };
-use tokio::task;
 
 pub fn run(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
     let config = ClientConfig::load();
@@ -22,6 +22,7 @@ pub fn run(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
     let mut rx_opt = match config.is_complete() {
         true => {
             let mut client = Client::init(config.clone());
+            app.is_authenticated = true;
             None
         },
         false => {
@@ -41,6 +42,7 @@ pub fn run(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
                 },
                 Message::Authenticated(_) => {
                     let mut client = Client::init(config.clone());
+                    app.is_authenticated = true;
                     auth_url = None;
                     rx_opt = None;
                 },
