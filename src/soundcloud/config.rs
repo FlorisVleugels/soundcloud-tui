@@ -1,6 +1,8 @@
+use std::error::Error;
 use std::path::PathBuf;
 use std::{ 
-    fs, path::Path
+    fs::{self, File},
+    path::Path
 };
 use serde::{Serialize, Deserialize};
 use serde_yaml::Value;
@@ -25,30 +27,30 @@ const CLIENT_CONFIG_FILE: &str = "client.yml";
 const AUTH_URL: &str = "https://secure.soundcloud.com/authorize";
 
 impl ClientConfig {
-    pub fn load() -> Self {
-        // if get client config give error, make new, if fs: error
-        let config_path = Self::path();
+    pub fn load() -> Result<Self, Box<dyn Error>> {
+        let config_path = Self::path()?;
 
-        // Handle error for reading config file if not there create it
-        let file = fs::File::open(config_path).unwrap();
-        let d = serde_yaml::Deserializer::from_reader(file);
+        let config_file = File::open(config_path)?;
+
+        let d = serde_yaml::Deserializer::from_reader(config_file);
 
         let config = Value::deserialize(d).unwrap();
 
         let value: Self = serde_yaml::from_value(config).unwrap();
 
-        value
+        Ok(value)
     }
 
-    fn path() -> PathBuf {
+    fn path() -> Result<PathBuf, &'static str> {
         match dirs::home_dir() {
             Some(path) => {
-                Path::new(&path)
+                Ok(Path::new(&path)
                     .join(CONFIG_DIR)
                     .join(APP_CONFIG_DIR)
                     .join(CLIENT_CONFIG_FILE)
+                )
             },
-            None => panic!("Unable to get home directory."),
+            None => Err("Unable to get home directory."),
         }
     }
 
@@ -65,13 +67,15 @@ impl ClientConfig {
     }
 
     fn save(&self) {
-        let config_path = Self::path();
-        let file = fs::OpenOptions::new()
-            .write(true)
-            .create(true)
-            .open(config_path)
-            .unwrap();
-        serde_yaml::to_writer(file, &self).unwrap();
+        // add else for the event that Err() from path()
+        if let Ok(config_path) = Self::path() {
+            let file = fs::OpenOptions::new()
+                .write(true)
+                .create(true)
+                .open(config_path)
+                .unwrap();
+            serde_yaml::to_writer(file, &self).unwrap();
+        }
     }
 
     pub fn is_complete(&self) -> bool {

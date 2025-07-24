@@ -4,7 +4,10 @@ mod handlers;
 mod soundcloud;
 mod ui;
 
-use std::sync::mpsc;
+use std::{
+    error::Error, 
+    sync::mpsc
+};
 use tokio::task;
 
 use app::App;
@@ -14,8 +17,8 @@ use soundcloud::{
     config::ClientConfig
 };
 
-pub fn run(terminal: &mut ratatui::DefaultTerminal) -> std::io::Result<()> {
-    let config = ClientConfig::load();
+pub fn run(terminal: &mut ratatui::DefaultTerminal) -> Result<(), Box<dyn Error>> {
+    let config = ClientConfig::load()?;
     let mut app = App::init();
 
     let mut auth_url = None;
