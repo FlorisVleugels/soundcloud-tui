@@ -1,22 +1,21 @@
 pub struct App {
     pub input: String,
     pub character_index: usize,
-    pub input_mode: InputMode,
-    pub is_authenticated: bool,
+    pub mode: Mode,
 }
 
-pub enum InputMode {
+pub enum Mode {
     Normal,
     Editing,
+    Authenticating
 }
 
 impl App {
     pub const fn init() -> Self {
         Self {
             input: String::new(),
-            input_mode: InputMode::Normal,
+            mode: Mode::Authenticating,
             character_index: 0,
-            is_authenticated: false,
         }
     }
 

@@ -1,5 +1,5 @@
 use std::fs;
-use super::app::{App, InputMode};
+use super::app::{App, Mode};
 use ratatui::{
     layout::{Layout, Position, Rect},
     style::{Color, Style},
@@ -62,20 +62,26 @@ fn draw_body(frame: &mut Frame, rect: Rect) {
 
 fn draw_search_box(frame: &mut Frame, app: &App, rect: Rect) {
     let input = Paragraph::new(app.input.as_str())
-        .style(match app.input_mode {
-            InputMode::Normal => Style::default(),
-            InputMode::Editing => Style::default().fg(Color::Yellow),
+        .style(match app.mode {
+            Mode::Editing => Style::default().fg(Color::Yellow),
+            _ => Style::default(),
         })
     .block(Block::bordered().title("Search"));
 
     frame.render_widget(input, rect);
 
-    match app.input_mode {
-        InputMode::Normal => {}
-        InputMode::Editing => frame.set_cursor_position(Position::new(
+    if let Mode::Editing = app.mode {
+        frame.set_cursor_position(Position::new(
+                rect.x + app.character_index as u16 + 1,
+                rect.y + 1,
+        ))
+    }
+    match app.mode {
+        Mode::Editing => frame.set_cursor_position(Position::new(
                 rect.x + app.character_index as u16 + 1,
                 rect.y + 1,
         )),
+        _ => {}
     }
 }
 

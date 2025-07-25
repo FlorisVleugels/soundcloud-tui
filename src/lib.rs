@@ -10,7 +10,7 @@ use std::{
 };
 use tokio::task;
 
-use app::App;
+use app::{App, Mode};
 use soundcloud::{
     auth::{self, Message},
     client::Client,
@@ -25,7 +25,7 @@ pub fn run(terminal: &mut ratatui::DefaultTerminal) -> Result<(), Box<dyn Error>
     let mut rx_opt = match config.is_complete() {
         true => {
             let mut client = Client::init(config.clone());
-            app.is_authenticated = true;
+            app.mode = Mode::Normal;
             None
         },
         false => {
@@ -45,7 +45,7 @@ pub fn run(terminal: &mut ratatui::DefaultTerminal) -> Result<(), Box<dyn Error>
                 },
                 Message::Authenticated(_) => {
                     let mut client = Client::init(config.clone());
-                    app.is_authenticated = true;
+                    app.mode = Mode::Normal;
                     auth_url = None;
                     rx_opt = None;
                 },
