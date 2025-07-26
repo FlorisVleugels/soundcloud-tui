@@ -92,7 +92,7 @@ impl ClientConfig {
         };
 
         format!("{}\
-            ?clientid={}\
+            ?client_id={}\
             &redirect_uri={}\
             &response_type=code\
             &code_challenge={}\

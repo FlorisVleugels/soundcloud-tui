@@ -34,7 +34,8 @@ fn handle_connection(
         "GET /?code" => {
             let code = fetch_client_code(&request_line);
             client_config.set_client_code(code);
-            tx.send(Message::Authenticated(true)).unwrap();
+            tx.send(Message::Success).unwrap();
+
             ("HTTP/1.1 200 OK", "src/static/redirect.html")
         },
         _ =>  ("HTTP/1.1 400 BAD REQUEST", "src/static/error.html")
