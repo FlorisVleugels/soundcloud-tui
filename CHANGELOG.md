@@ -1,8 +1,7 @@
-  _________                        .___     .__                   .___          __        .__ 
- /   _____/ ____  __ __  ____    __| _/____ |  |   ____  __ __  __| _/        _/  |_ __ __|__|
- \_____  \ /  _ \|  |  \/    \  / __ |/ ___\|  |  /  _ \|  |  \/ __ |  ______ \   __\  |  \  |
- /        (  <_> )  |  /   |  \/ /_/ \  \___|  |_(  <_> )  |  / /_/ | /_____/  |  | |  |  /  |
-/_______  /\____/|____/|___|  /\____ |\___  >____/\____/|____/\____ |          |__| |____/|__|
-        \/                  \/      \/    \/                       \/
+# Changelog
 
-Please report any bugs or missing features to https://github.com/FlorisVleugels/soundcloud-tui
+## What is Lorem Ipsum?
+Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+
+## Why do we use it?
+t is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).

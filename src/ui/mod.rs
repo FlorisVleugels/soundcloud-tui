@@ -48,11 +48,15 @@ fn draw_body(frame: &mut Frame, rect: Rect) {
     let [top_area, bot_area] = vertical_bar.areas(bar_area);
 
     let changelog: String = fs::read_to_string("CHANGELOG.md").unwrap();
-    let banner = Text::from(changelog);
-    let paragraph = Paragraph::new(banner)
+    let changelog = Text::from(changelog);
+    let paragraph = Paragraph::new(format!(
+            "{}\nPlease report any bugs or missing features to https://github.com/FlorisVleugels/soundcloud-tui \
+            \n\n\n{}", HEADER_ASCII, changelog
+            ))
+        .wrap(Wrap { trim: false })
         .block(Block::bordered()
             .title("Welcome!")
-            .padding(Padding::new(5,0,2,0))
+            .padding(Padding::new(5,5,2,2))
         );
 
     frame.render_widget(paragraph, body_area);
