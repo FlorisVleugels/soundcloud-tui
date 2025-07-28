@@ -6,13 +6,13 @@ mod ui;
 
 use std::{
     error::Error, 
-    sync::{mpsc::{self, Receiver}, Arc, Mutex}
+    sync::{Arc, Mutex}
 };
 use tokio::task;
 
 use app::{App, Mode};
 use soundcloud::{
-    auth::{self, Message},
+    auth::{self},
     client::Client,
     config::ClientConfig
 };
@@ -27,12 +27,8 @@ pub fn run(terminal: &mut ratatui::DefaultTerminal) -> Result<(), Box<dyn Error>
             app.lock().unwrap().mode = Mode::Normal;
         },
         false => {
-            let (tx, rx) = mpsc::channel();
             task::spawn(
-                auth::run(config.clone(), tx)
-            );
-            task::spawn( 
-                rcv(rx, Arc::clone(&app), config)
+                auth::run(config.clone(), Arc::clone(&app))
             );
         }
     };
@@ -41,20 +37,6 @@ pub fn run(terminal: &mut ratatui::DefaultTerminal) -> Result<(), Box<dyn Error>
         terminal.draw(|frame| ui::render(frame, &mut *app.lock().unwrap()))?;
         if events::handle(&mut *app.lock().unwrap())? {
             break Ok(());
-        }
-    }
-}
-
-async fn rcv(rx: Receiver<Message>, app: Arc<Mutex<App>>, config: ClientConfig) {
-    // Dont need to loop this if only keep success message, since recv blocks anyway
-    loop {
-        match rx.recv().unwrap() {
-            Message::Authenticating => {},
-            Message::Success => {
-                let mut client = Client::init(config);
-                app.lock().unwrap().mode = Mode::Normal;
-                break
-            }
         }
     }
 }

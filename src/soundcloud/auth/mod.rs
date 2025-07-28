@@ -1,22 +1,18 @@
 mod redirect;
 mod pkce;
 
-use std::sync::mpsc::Sender;
+use std::sync::{Arc, Mutex};
 
 use pkce::PKCE;
+use crate::app::App;
 use super::config::ClientConfig;
 
-pub enum Message {
-    Authenticating,
-    Success
-}
 
-pub async fn run(mut config: ClientConfig, tx: Sender<Message>) {
+pub async fn run(mut config: ClientConfig, app: Arc<Mutex<App>>) {
     let keys = PKCE::new();
     config.code_verifier = Some(keys.verifier);
 
-    tx.send(Message::Authenticating).unwrap();
     open::that(config.auth_url(&keys.challenge)).unwrap();
 
-    redirect::serve(&mut config, &tx);
+    redirect::serve(&mut config, &app);
 }

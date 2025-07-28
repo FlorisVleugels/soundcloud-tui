@@ -1,27 +1,29 @@
 use std::{fs, 
     io::{BufRead, BufReader, Write},
-    net::{TcpListener, TcpStream}, sync::mpsc::Sender
+    net::{TcpListener, TcpStream}, sync::{Arc, Mutex}
 };
 
-use super::{super::config::ClientConfig, Message};
+use crate::app::{App, Mode};
+use super::super::config::ClientConfig;
 
-pub fn serve(client_config: &mut ClientConfig, tx: &Sender<Message>) {
+pub fn serve(client_config: &mut ClientConfig, app: &Arc<Mutex<App>>) {
     let listener = TcpListener::bind("127.0.0.1:3000").unwrap();
 
-     for stream in listener.incoming() {
-         let stream = stream.unwrap();
+    for stream in listener.incoming() {
+        let stream = stream.unwrap();
 
-         match client_config.client_code() {
-             Some(_) => break, 
-             None => handle_connection(stream, client_config, tx)
-         }
-     }
+        handle_connection(stream, client_config, app);
+        match client_config.client_code() {
+            Some(_) => break, 
+            None => continue
+        }
+    }
 }
 
 fn handle_connection(
     mut stream: TcpStream,
     client_config: &mut ClientConfig,
-    tx: &Sender<Message>
+    app: &Arc<Mutex<App>>,
     ) {
     let buf_reader = BufReader::new(&stream);
     let request_line = buf_reader
@@ -34,7 +36,7 @@ fn handle_connection(
         "GET /?code" => {
             let code = fetch_client_code(&request_line);
             client_config.set_client_code(code);
-            tx.send(Message::Success).unwrap();
+            app.lock().unwrap().mode = Mode::Normal;
 
             ("HTTP/1.1 200 OK", "src/static/redirect.html")
         },

@@ -6,7 +6,7 @@ use crossterm::event::{self, poll, Event, KeyCode, KeyEventKind};
 pub fn handle(app: &mut App) -> std::io::Result<bool> {
     match app.mode {
         Mode::Authenticating => {
-            if poll(Duration::from_millis(1000))? {
+            if poll(Duration::from_millis(100))? {
                 if let Event::Key(key) = event::read()? {
                     if let KeyCode::Char('q') = key.code {
                         return Ok(true)
