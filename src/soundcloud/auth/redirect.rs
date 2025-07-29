@@ -1,40 +1,48 @@
-use std::{fs, 
-    io::{BufRead, BufReader, Write},
-    net::{TcpListener, TcpStream}, sync::{Arc, Mutex}
+use std::{
+    error::Error, fs,
+    sync::{Arc, Mutex}
+};
+
+use tokio::{
+    io::{AsyncReadExt, AsyncWriteExt},
+    net::{TcpListener, TcpStream}
 };
 
 use crate::app::{App, Mode};
 use super::super::config::ClientConfig;
 
-pub fn serve(client_config: &mut ClientConfig, app: &Arc<Mutex<App>>) {
-    let listener = TcpListener::bind("127.0.0.1:3000").unwrap();
+pub async fn serve(client_config: &mut ClientConfig, app: &Arc<Mutex<App>>) -> Result<(), Box<dyn Error>> {
+    let listener = TcpListener::bind("127.0.0.1:3000").await?;
 
-    for stream in listener.incoming() {
-        let stream = stream.unwrap();
-
-        handle_connection(stream, client_config, app);
-        match client_config.client_code() {
-            Some(_) => break, 
-            None => continue
+    loop {
+        match listener.accept().await {
+            Ok((stream, _)) => {
+                handle_connection(stream, client_config, app).await?;
+                match client_config.client_code() {
+                    Some(_) => break, 
+                    None => continue
+                }
+            },
+            Err(e) => println!("couldn't get client: {:?}", e),
         }
     }
+    Ok(())
 }
 
-fn handle_connection(
+async fn handle_connection(
     mut stream: TcpStream,
     client_config: &mut ClientConfig,
     app: &Arc<Mutex<App>>,
-    ) {
-    let buf_reader = BufReader::new(&stream);
-    let request_line = buf_reader
-        .lines()
-        .next()
-        .unwrap()
-        .unwrap();
+    ) -> Result<(), Box<dyn Error>>{
+
+    let mut buffer = [0; 512];
+    stream.read(&mut buffer).await?;
+    let request = String::from_utf8_lossy(&buffer[..]);
+    let request_line = request.lines().next().unwrap();
 
     let (status_line, filename) = match &request_line[0..10] {
         "GET /?code" => {
-            let code = fetch_client_code(&request_line);
+            let code = fetch_client_code(request_line);
             client_config.set_client_code(code);
             app.lock().unwrap().mode = Mode::Normal;
 
@@ -48,10 +56,12 @@ fn handle_connection(
         
     let response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
 
-    stream.write_all(response.as_bytes()).unwrap();
+    stream.write_all(response.as_bytes()).await?;
+    
+    Ok(())
 }
 
-fn fetch_client_code(request_line: &String) -> String {
+fn fetch_client_code(request_line: &str) -> String {
     let code = request_line
         .split("code=")
         .last()

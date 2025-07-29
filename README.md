@@ -1,4 +1,4 @@
-# Soundcloud TUI
+# Soundcloud TUI (WIP)
 
 A Soundcloud client for the terminal written in Rust, inspired by spotify-tui.
 
@@ -12,7 +12,7 @@ A Soundcloud client for the terminal written in Rust, inspired by spotify-tui.
 
 To be added
 
-## Connecting to Soundcloud’s API (WIP)
+## Connecting to Soundcloud’s API
 
 `soundcloud-tui` needs to connect to Soundcloud’s API in order to find and stream music etc. 
 API access requires you to sign up your own app
