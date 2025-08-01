@@ -11,7 +11,7 @@ use dirs;
 pub struct AppConfig {
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct ClientConfig {
     pub client_id: String,
     pub client_secret: String,

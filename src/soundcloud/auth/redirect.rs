@@ -8,17 +8,16 @@ use tokio::{
     net::{TcpListener, TcpStream}
 };
 
-use crate::app::{App, Mode};
 use super::super::config::ClientConfig;
 
-pub async fn serve(client_config: &mut ClientConfig, app: &Arc<Mutex<App>>) -> Result<(), Box<dyn Error>> {
+pub async fn serve(client_config: &Arc<Mutex<ClientConfig>>) -> Result<(), Box<dyn Error>> {
     let listener = TcpListener::bind("127.0.0.1:3000").await?;
 
     loop {
         match listener.accept().await {
             Ok((stream, _)) => {
-                handle_connection(stream, client_config, app).await?;
-                match client_config.client_code() {
+                handle_connection(stream, client_config).await?;
+                match client_config.lock().unwrap().client_code() {
                     Some(_) => break, 
                     None => continue
                 }
@@ -31,8 +30,7 @@ pub async fn serve(client_config: &mut ClientConfig, app: &Arc<Mutex<App>>) -> R
 
 async fn handle_connection(
     mut stream: TcpStream,
-    client_config: &mut ClientConfig,
-    app: &Arc<Mutex<App>>,
+    client_config: &Arc<Mutex<ClientConfig>>,
     ) -> Result<(), Box<dyn Error>>{
 
     let mut buffer = [0; 512];
@@ -43,8 +41,7 @@ async fn handle_connection(
     let (status_line, filename) = match &request_line[0..10] {
         "GET /?code" => {
             let code = fetch_client_code(request_line);
-            client_config.set_client_code(code);
-            app.lock().unwrap().mode = Mode::Normal;
+            client_config.lock().unwrap().set_client_code(code);
 
             ("HTTP/1.1 200 OK", "src/static/redirect.html")
         },

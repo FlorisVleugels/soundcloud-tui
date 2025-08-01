@@ -11,18 +11,27 @@ use constants::*;
 
 mod constants;
 
-pub fn render(frame: &mut Frame, app: &mut App) {
+pub fn auth(frame: &mut Frame) {
+    let paragraph = Paragraph::new(format!(
+            "{}\n\n\n\n\nTo continue, please check the tab that opened in your \
+            browser and authorize soundcloud-tui",
+            HEADER_ASCII))
+        .centered()
+        .wrap(Wrap { trim: false })
+        .block(Block::bordered()
+            .title("soundcloud-tui")
+            .padding(Padding::new(0, 0, 6, 0))
+        );
+    frame.render_widget(paragraph, frame.area());
+}
+
+pub fn render_app(frame: &mut Frame, app: &mut App) {
     let vertical = Layout::vertical(MAIN_CONSTRAINTS);
     let [title_area, main_area, status_area] = vertical.areas(frame.area());
 
-    match app.mode {
-        Mode::Authenticating => draw_auth_frame(frame),
-        _ => {
-            draw_top_bar(frame, app, title_area);
-            draw_body(frame, main_area);
-            draw_status_bar(frame, status_area);
-        }
-    }
+    draw_top_bar(frame, app, title_area);
+    draw_body(frame, main_area);
+    draw_status_bar(frame, status_area);
 }
 
 fn draw_top_bar(frame: &mut Frame, app: &mut App, rect: Rect) {
