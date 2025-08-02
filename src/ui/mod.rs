@@ -97,17 +97,3 @@ fn draw_search_box(frame: &mut Frame, app: &mut App, rect: Rect) {
         _ => {}
     }
 }
-
-fn draw_auth_frame(frame: &mut Frame) {
-    let paragraph = Paragraph::new(format!(
-            "{}\n\n\n\n\nTo continue, please check the tab that opened in your \
-            browser and authorize soundcloud-tui",
-            HEADER_ASCII))
-        .centered()
-        .wrap(Wrap { trim: false })
-        .block(Block::bordered()
-            .title("soundcloud-tui")
-            .padding(Padding::new(0, 0, 6, 0))
-        );
-    frame.render_widget(paragraph, frame.area());
-}

@@ -1,12 +1,9 @@
 use std::error::Error;
-use std::path::PathBuf;
-use std::{ 
-    fs::{self, File},
-    path::Path
-};
+use std::fs::{self, File};
 use serde::{Serialize, Deserialize};
 use serde_yaml::Value;
-use dirs;
+
+use super::path;
 
 pub struct AppConfig {
 }
@@ -20,38 +17,19 @@ pub struct ClientConfig {
     pub code_verifier: Option<String>,
 }
 
-const CONFIG_DIR: &str = ".config";
-const APP_CONFIG_DIR: &str = "soundcloud-tui";
-const CLIENT_CONFIG_FILE: &str = "client.yml";
-
 const AUTH_URL: &str = "https://secure.soundcloud.com/authorize";
 
 impl ClientConfig {
     pub fn load() -> Result<Self, Box<dyn Error>> {
-        let config_path = Self::path()?;
+        let config_path = path("client.yml")?;
 
         let config_file = File::open(config_path)?;
 
         let d = serde_yaml::Deserializer::from_reader(config_file);
-
         let config = Value::deserialize(d).unwrap();
-
         let value: Self = serde_yaml::from_value(config).unwrap();
 
         Ok(value)
-    }
-
-    fn path() -> Result<PathBuf, &'static str> {
-        match dirs::home_dir() {
-            Some(path) => {
-                Ok(Path::new(&path)
-                    .join(CONFIG_DIR)
-                    .join(APP_CONFIG_DIR)
-                    .join(CLIENT_CONFIG_FILE)
-                )
-            },
-            None => Err("Unable to get home directory."),
-        }
     }
 
     pub fn set_client_code(&mut self, code: String) {
@@ -59,7 +37,7 @@ impl ClientConfig {
         self.save();
     }
 
-    pub fn client_code(&mut self) -> &Option<String> {
+    pub fn client_code(&self) -> &Option<String> {
         &self.client_code
     }
 
@@ -68,7 +46,7 @@ impl ClientConfig {
 
     fn save(&self) {
         // add else for the event that Err() from path()
-        if let Ok(config_path) = Self::path() {
+        if let Ok(config_path) = path("client.yml") {
             let file = fs::OpenOptions::new()
                 .write(true)
                 .create(true)

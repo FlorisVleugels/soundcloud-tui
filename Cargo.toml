@@ -11,7 +11,7 @@ dirs = "6.0.0"
 open = "5.3.2"
 rand = "0.9.1"
 ratatui = "0.29.0"
-reqwest = "0.12.22"
+reqwest = { version = "0.12.22", features = ["json"] }
 ring = "0.17.14"
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.9.34"

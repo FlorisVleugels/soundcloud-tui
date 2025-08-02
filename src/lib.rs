@@ -31,10 +31,12 @@ pub async fn run(terminal: &mut ratatui::DefaultTerminal) -> Result<(), Box<dyn 
     };
 
     app.lock().unwrap().mode = Mode::Normal;
+    let client = Arc::new(Mutex::new(client.await?));
 
     loop {
         terminal.draw(|frame| ui::render_app(frame, &mut *app.lock().unwrap()))?;
         if events::handle(&mut *app.lock().unwrap())? {
+            client.lock().unwrap().store_refresh_token();
             break Ok(());
         }
     }
