@@ -1,9 +1,12 @@
 use std::error::Error;
 use std::fs::{self, File};
+use std::sync::{Arc, Mutex};
 use serde_yaml::Value;
 use serde::{Serialize, Deserialize};
 
-use super::api;
+use crate::app::App;
+
+use super::api::{self, PlaylistResponse};
 use super::config::ClientConfig;
 use super::path;
 
@@ -16,7 +19,7 @@ pub struct RefreshToken{
 
 pub struct Client {
     config: ClientConfig,
-    access_token: AccessToken,
+    pub access_token: AccessToken,
     refresh_token: RefreshToken,
     client: reqwest::Client,
 }
@@ -109,8 +112,11 @@ impl Client {
 
     }
 
-    pub async fn _liked_playlists(&self) {
-        
+    pub async fn liked_playlists(&self, app: &Arc<Mutex<App>>) {
+        let response = api::liked_playlists(&self.access_token.0, &self.client).await;
+        if let Ok(playlists) = response {
+            app.lock().unwrap().playlists = Some(playlists)
+        }
     }
 
     pub async fn _liked_tracks(&self) {

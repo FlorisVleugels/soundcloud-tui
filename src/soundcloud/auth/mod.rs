@@ -18,7 +18,7 @@ pub fn auth(
     app: &Arc<Mutex<App>>,
     terminal: &mut ratatui::DefaultTerminal,
     config: &Arc<Mutex<ClientConfig>>
-    ) -> Result<Option<ClientConfig>, Box<dyn Error>>{
+) -> Result<Option<ClientConfig>, Box<dyn Error>>{
     let token = CancellationToken::new();
     let cloned_token = token.clone();
 

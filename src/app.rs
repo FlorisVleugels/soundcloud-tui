@@ -1,7 +1,10 @@
+use crate::soundcloud::api::PlaylistResponse;
+
 pub struct App {
     pub input: String,
     pub character_index: usize,
     pub mode: Mode,
+    pub playlists: Option<PlaylistResponse>,
 }
 
 pub enum Mode {
@@ -16,6 +19,7 @@ impl App {
             input: String::new(),
             mode: Mode::Authenticating,
             character_index: 0,
+            playlists: None
         }
     }
 

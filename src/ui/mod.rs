@@ -3,10 +3,11 @@ use super::app::{App, Mode};
 use ratatui::{
     layout::{Layout, Position, Rect},
     style::{Color, Style},
-    text::Text,
+    text::{Text, Line},
     widgets::{Block, Paragraph, Padding, Wrap},
     Frame,
 };
+
 use constants::*;
 
 mod constants;
@@ -25,12 +26,15 @@ pub fn auth(frame: &mut Frame) {
     frame.render_widget(paragraph, frame.area());
 }
 
-pub fn render_app(frame: &mut Frame, app: &mut App) {
+pub fn render_app(
+    frame: &mut Frame,
+    app: &mut App
+) {
     let vertical = Layout::vertical(MAIN_CONSTRAINTS);
     let [title_area, main_area, status_area] = vertical.areas(frame.area());
 
     draw_top_bar(frame, app, title_area);
-    draw_body(frame, main_area);
+    draw_body(frame, main_area, app);
     draw_status_bar(frame, status_area);
 }
 
@@ -49,7 +53,11 @@ fn draw_status_bar(frame: &mut Frame, rect: Rect) {
     frame.render_widget(Block::bordered().title("Playing (Test Song - Test Band)"), rect);
 }
 
-fn draw_body(frame: &mut Frame, rect: Rect) {
+fn draw_body(
+    frame: &mut Frame,
+    rect: Rect,
+    app: &mut App,
+) {
     let horizontal_body = Layout::horizontal(BODY_CONSTRAINTS);
     let [body_area, bar_area] = horizontal_body.areas(rect);
 
@@ -59,7 +67,8 @@ fn draw_body(frame: &mut Frame, rect: Rect) {
     let changelog: String = fs::read_to_string("CHANGELOG.md").unwrap();
     let changelog = Text::from(changelog);
     let paragraph = Paragraph::new(format!(
-            "{}\nPlease report any bugs or missing features to https://github.com/FlorisVleugels/soundcloud-tui \
+            "{}\nPlease report any bugs or missing features \
+            to https://github.com/FlorisVleugels/soundcloud-tui \
             \n\n\n{}", HEADER_ASCII, changelog
             ))
         .wrap(Wrap { trim: false })
@@ -70,7 +79,27 @@ fn draw_body(frame: &mut Frame, rect: Rect) {
 
     frame.render_widget(paragraph, body_area);
     frame.render_widget(Block::bordered().title("Library"), top_area);
-    frame.render_widget(Block::bordered().title("Playlists"), bot_area);
+    draw_playlist_box(frame, bot_area, app);
+}
+
+fn draw_playlist_box(
+    frame: &mut Frame,
+    rect: Rect,
+    app: &mut App
+) {
+    if let Some(playlists) = &app.playlists {
+        let mut titles = vec![];
+        for playlist in playlists.collection.iter() {
+            titles.push(Line::from(&playlist.title[..]));
+        }
+        let paragraph = Paragraph::new(titles)
+            .block(Block::bordered()
+                .title("Playlists")
+            );
+        frame.render_widget(paragraph, rect);
+    } else {
+        frame.render_widget(Block::bordered().title("Playlists"), rect);
+    }
 }
 
 fn draw_search_box(frame: &mut Frame, app: &mut App, rect: Rect) {
