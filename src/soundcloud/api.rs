@@ -24,8 +24,20 @@ pub struct Playlist {
 }
 
 #[derive(Deserialize, Debug)]
-pub struct PlaylistResponse {
+pub struct Playlists {
     pub collection: Vec<Playlist>,
+    pub next_href: String,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Track {
+    pub title: String,
+    pub stream_url: String,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Tracks {
+    pub collection: Vec<Track>,
     pub next_href: String,
 }
 
@@ -82,10 +94,14 @@ pub async fn _search_playlists() {
     
 }
 
+pub async fn _search_tracks() {
+    
+}
+
 pub async fn liked_playlists(
     access_token: &String,
     client: &reqwest::Client
-) -> Result<PlaylistResponse, Error> {
+) -> Result<Playlists, Error> {
     let limit = "limit=20";
     let url = format!("{}me/likes/playlists?{}&linked_partitioning=true", BASE_URL, limit);
 
@@ -95,7 +111,27 @@ pub async fn liked_playlists(
         .header("Authorization", format!("OAuth {}", access_token))
         .send()
         .await?
-        .json::<PlaylistResponse>()
+        .json::<Playlists>()
+        .await?;
+
+    Ok(response)
+}
+
+pub async fn liked_tracks(
+    access_token: &String,
+    client: &reqwest::Client
+) -> Result<Tracks, Error> {
+    let limit = "limit=20";
+    let access = "access=playable";
+    let url = format!("{}me/likes/tracks?{}&{}&linked_partitioning=true", BASE_URL, limit, access);
+
+    let response = client
+        .get(url)
+        .header("accept", "application/json; charset=utf-8")
+        .header("Authorization", format!("OAuth {}", access_token))
+        .send()
+        .await?
+        .json::<Tracks>()
         .await?;
 
     Ok(response)

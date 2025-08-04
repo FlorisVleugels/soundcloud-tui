@@ -11,5 +11,5 @@ pub const HEADER_ASCII: &str = r#"
 
 pub const MAIN_CONSTRAINTS: [Constraint; 3] = [Constraint::Length(3), Constraint::Min(0), Constraint::Length(6)];
 pub const TOP_BAR_CONSTRAINTS: [Constraint; 2] = [Constraint::Percentage(95), Constraint::Percentage(5)];
-pub const BODY_CONSTRAINTS: [Constraint; 2] = [Constraint::Percentage(85), Constraint::Percentage(15)];
-pub const BODY_BAR_CONSTRAINTS: [Constraint; 2] = [Constraint::Ratio(1,2); 2];
+pub const BODY_CONSTRAINTS: [Constraint; 2] = [Constraint::Percentage(88), Constraint::Percentage(12)];
+pub const BODY_BAR_CONSTRAINTS: [Constraint; 2] = [Constraint::Percentage(20), Constraint::Percentage(80)];

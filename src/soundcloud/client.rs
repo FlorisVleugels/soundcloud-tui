@@ -6,7 +6,7 @@ use serde::{Serialize, Deserialize};
 
 use crate::app::App;
 
-use super::api::{self, PlaylistResponse};
+use super::api;
 use super::config::ClientConfig;
 use super::path;
 
@@ -115,11 +115,14 @@ impl Client {
     pub async fn liked_playlists(&self, app: &Arc<Mutex<App>>) {
         let response = api::liked_playlists(&self.access_token.0, &self.client).await;
         if let Ok(playlists) = response {
-            app.lock().unwrap().playlists = Some(playlists)
+            app.lock().unwrap().liked_playlists = Some(playlists)
         }
     }
 
-    pub async fn _liked_tracks(&self) {
-        
+    pub async fn liked_tracks(&self, app: &Arc<Mutex<App>>) {
+        let response = api::liked_tracks(&self.access_token.0, &self.client).await;
+        if let Ok(tracks) = response {
+            app.lock().unwrap().liked_tracks = Some(tracks)
+        }
     }
 }

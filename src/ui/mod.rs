@@ -78,7 +78,7 @@ fn draw_body(
         );
 
     frame.render_widget(paragraph, body_area);
-    frame.render_widget(Block::bordered().title("Library"), top_area);
+    draw_library_box(frame, top_area, app);
     draw_playlist_box(frame, bot_area, app);
 }
 
@@ -87,7 +87,7 @@ fn draw_playlist_box(
     rect: Rect,
     app: &mut App
 ) {
-    if let Some(playlists) = &app.playlists {
+    if let Some(playlists) = &app.liked_playlists {
         let mut titles = vec![];
         for playlist in playlists.collection.iter() {
             titles.push(Line::from(&playlist.title[..]));
@@ -100,6 +100,24 @@ fn draw_playlist_box(
     } else {
         frame.render_widget(Block::bordered().title("Playlists"), rect);
     }
+}
+
+fn draw_library_box(
+    frame: &mut Frame,
+    rect: Rect,
+    app: &mut App
+) {
+    let items = vec![
+        Line::from("Recently Played"),
+        Line::from("Liked Tracks"),
+        Line::from("Artists"),
+        Line::from("Albums"),
+    ];
+    let paragraph = Paragraph::new(items)
+        .block(Block::bordered()
+            .title("Library")
+        );
+    frame.render_widget(paragraph, rect);
 }
 
 fn draw_search_box(frame: &mut Frame, app: &mut App, rect: Rect) {
