@@ -1,4 +1,4 @@
-use std::fs;
+use std::{fs, iter};
 use super::app::{App, Mode};
 use ratatui::{
     layout::{Layout, Position, Rect},
@@ -89,8 +89,13 @@ fn draw_playlist_box(
 ) {
     if let Some(playlists) = &app.liked_playlists {
         let mut titles = vec![];
-        for playlist in playlists.collection.iter() {
-            titles.push(Line::from(&playlist.title[..]));
+        for (i, playlist) in playlists.collection.iter().enumerate() {
+            if &i == &app.playlists_index {
+                titles.push(Line::from(&playlist.title[..])
+                    .style(Color::Red));
+            } else {
+                titles.push(Line::from(&playlist.title[..]));
+            }
         }
         let paragraph = Paragraph::new(titles)
             .block(Block::bordered()
@@ -132,13 +137,13 @@ fn draw_search_box(frame: &mut Frame, app: &mut App, rect: Rect) {
 
     if let Mode::Editing = app.mode {
         frame.set_cursor_position(Position::new(
-                rect.x + app.character_index as u16 + 1,
+                rect.x + app.search_index as u16 + 1,
                 rect.y + 1,
         ))
     }
     match app.mode {
         Mode::Editing => frame.set_cursor_position(Position::new(
-                rect.x + app.character_index as u16 + 1,
+                rect.x + app.search_index as u16 + 1,
                 rect.y + 1,
         )),
         _ => {}

@@ -24,6 +24,9 @@ pub fn handle(app: &mut App) -> std::io::Result<bool> {
                     KeyCode::Char('q') => {
                         return Ok(true);
                     }
+                    KeyCode::Char('j') => app.increase_index(),
+                    KeyCode::Char('k') => app.decrease_index(),
+                    KeyCode::Enter => {}
                     _ => {}
                 }
             }
@@ -33,7 +36,7 @@ pub fn handle(app: &mut App) -> std::io::Result<bool> {
             if let Event::Key(key) = event::read()? {
                 if key.kind == KeyEventKind::Press { 
                     match key.code {
-                        KeyCode::Enter => {},
+                        KeyCode::Enter => {}
                         KeyCode::Char(to_insert) => app.enter_char(to_insert),
                         KeyCode::Backspace => app.delete_char(),
                         KeyCode::Left => app.move_cursor_left(),

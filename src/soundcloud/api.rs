@@ -47,7 +47,7 @@ pub async fn oauth_tokens(
 ) -> Result<OauthTokens, Error> {
     let mut params = HashMap::new();
     let verifier = &config.code_verifier.as_ref().unwrap()[..];
-    let code = &config.client_code().as_ref().unwrap()[..];
+    let code = &config.client_code().unwrap()[..];
     params.insert("grant_type", "authorization_code");
     params.insert("client_id", &config.client_id[..]);
     params.insert("client_secret", &config.client_secret[..]);
@@ -124,6 +124,26 @@ pub async fn liked_tracks(
     let limit = "limit=20";
     let access = "access=playable";
     let url = format!("{}me/likes/tracks?{}&{}&linked_partitioning=true", BASE_URL, limit, access);
+
+    let response = client
+        .get(url)
+        .header("accept", "application/json; charset=utf-8")
+        .header("Authorization", format!("OAuth {}", access_token))
+        .send()
+        .await?
+        .json::<Tracks>()
+        .await?;
+
+    Ok(response)
+}
+
+pub async fn playlist_tracks(
+    access_token: &String,
+    client: &reqwest::Client,
+    tracks_url: &str,
+) -> Result<Tracks, Error> {
+    let access = "access=playable";
+    let url = format!("{}?{}&linked_partitioning=true", tracks_url, access);
 
     let response = client
         .get(url)

@@ -37,8 +37,8 @@ impl ClientConfig {
         self.save();
     }
 
-    pub fn client_code(&self) -> &Option<String> {
-        &self.client_code
+    pub fn client_code(&self) -> Option<&String> {
+        self.client_code.as_ref()
     }
 
     fn create_client_config() {

@@ -122,7 +122,14 @@ impl Client {
     pub async fn liked_tracks(&self, app: &Arc<Mutex<App>>) {
         let response = api::liked_tracks(&self.access_token.0, &self.client).await;
         if let Ok(tracks) = response {
-            app.lock().unwrap().liked_tracks = Some(tracks)
+            app.lock().unwrap().tracks = Some(tracks)
+        }
+    }
+
+    pub async fn playlist_tracks(&self, app: &Arc<Mutex<App>>) {
+        let response = api::playlist_tracks(&self.access_token.0, &self.client, "").await;
+        if let Ok(tracks) = response {
+            app.lock().unwrap().tracks = Some(tracks)
         }
     }
 }

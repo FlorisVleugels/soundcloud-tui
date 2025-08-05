@@ -2,16 +2,33 @@ use crate::soundcloud::api::{Playlists, Tracks};
 
 pub struct App {
     pub input: String,
-    pub character_index: usize,
     pub mode: Mode,
+    pub focus: Focus,
+    pub body: Body,
     pub liked_playlists: Option<Playlists>,
-    pub liked_tracks: Option<Tracks>,
+    pub tracks: Option<Tracks>,
+    pub search_index: usize,
+    pub playlists_index: usize,
+    pub library_index: usize,
+    pub body_index: usize,
 }
 
 pub enum Mode {
+    Authenticating,
     Normal,
     Editing,
-    Authenticating
+}
+
+pub enum Focus {
+    Body,
+    Library,
+    Playlists,
+    Status,
+}
+
+pub enum Body {
+    Welcome,
+    Tracks, 
 }
 
 impl App {
@@ -19,20 +36,55 @@ impl App {
         Self {
             input: String::new(),
             mode: Mode::Authenticating,
-            character_index: 0,
+            focus: Focus::Playlists,
+            body: Body::Welcome,
             liked_playlists: None,
-            liked_tracks: None
+            tracks: None,
+            search_index: 0,
+            playlists_index: 0,
+            library_index: 0,
+            body_index: 0,
+        }
+    }
+
+    pub fn increase_index(&mut self) {
+        match self.focus {
+            Focus::Body => { 
+                self.body_index = self.body_index.saturating_add(1)
+            }
+            Focus::Library => {
+                self.library_index = self.library_index.saturating_add(1)
+            }
+            Focus::Playlists => {
+                self.playlists_index = self.playlists_index.saturating_add(1)
+            }
+            _ => {}
+        }
+    }
+
+    pub fn decrease_index(&mut self) {
+        match self.focus {
+            Focus::Body => { 
+                self.body_index = self.body_index.saturating_sub(1)
+            }
+            Focus::Library => {
+                self.library_index = self.library_index.saturating_sub(1)
+            }
+            Focus::Playlists => {
+                self.playlists_index = self.playlists_index.saturating_sub(1)
+            }
+            _ => {}
         }
     }
 
     pub fn move_cursor_left(&mut self) {
-        let cursor_moved_left = self.character_index.saturating_sub(1);
-        self.character_index = self.clamp_cursor(cursor_moved_left);
+        let cursor_moved_left = self.search_index.saturating_sub(1);
+        self.search_index = self.clamp_cursor(cursor_moved_left);
     }
 
     pub fn move_cursor_right(&mut self) {
-        let cursor_moved_right = self.character_index.saturating_add(1);
-        self.character_index = self.clamp_cursor(cursor_moved_right);
+        let cursor_moved_right = self.search_index.saturating_add(1);
+        self.search_index = self.clamp_cursor(cursor_moved_right);
     }
 
     pub fn enter_char(&mut self, new_char: char) {
@@ -45,15 +97,15 @@ impl App {
         self.input
             .char_indices()
             .map(|(i, _)| i)
-            .nth(self.character_index)
+            .nth(self.search_index)
             .unwrap_or(self.input.len())
     }
 
     pub fn delete_char(&mut self) {
-        let is_not_cursor_leftmost = self.character_index != 0;
+        let is_not_cursor_leftmost = self.search_index != 0;
         if is_not_cursor_leftmost {
 
-            let current_index = self.character_index;
+            let current_index = self.search_index;
             let from_left_to_current_index = current_index - 1;
 
             let before_char_to_delete = self.input.chars().take(from_left_to_current_index);
