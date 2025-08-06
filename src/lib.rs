@@ -22,7 +22,7 @@ pub async fn run(terminal: &mut ratatui::DefaultTerminal) -> Result<(), Box<dyn 
     let client = match config.is_complete() {
         true => Client::init(config),
         false => {
-            let config = soundcloud::auth(&app, terminal, &Arc::new(Mutex::new(config)))?;
+            let config = soundcloud::auth(terminal, &Arc::new(Mutex::new(config)))?;
             match config {
                 Some(config) => Client::init(config),
                 None => return Ok(())
@@ -36,11 +36,10 @@ pub async fn run(terminal: &mut ratatui::DefaultTerminal) -> Result<(), Box<dyn 
     // after every refresh happens, not here
     client.lock().unwrap().store_refresh_token();
     client.lock().unwrap().liked_playlists(&app).await;
-    client.lock().unwrap().playlist_tracks(&app).await;
 
     loop {
         terminal.draw(|frame| ui::render_app(frame, &mut *app.lock().unwrap()))?;
-        if events::handle(&mut *app.lock().unwrap())? {
+        if events::handle(&mut *app.lock().unwrap(), &client).await? {
             client.lock().unwrap().store_refresh_token();
             break Ok(());
         }

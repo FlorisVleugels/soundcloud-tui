@@ -1,21 +1,12 @@
-use std::time::Duration;
+use std::{sync::{Arc, Mutex}, time::Duration};
 
 use crossterm::event::{self, poll, Event, KeyCode, KeyEventKind};
 
 use crate::app::{App, Body, Focus, Mode};
+use crate::soundcloud::client::Client;
 
-pub fn handle(app: &mut App) -> std::io::Result<bool> {
+pub async fn handle(app: &mut App, client: &Arc<Mutex<Client>>) -> std::io::Result<bool> {
     match app.mode {
-        Mode::Authenticating => {
-            if poll(Duration::from_millis(100))? {
-                if let Event::Key(key) = event::read()? {
-                    if let KeyCode::Char('q') = key.code {
-                        return Ok(true)
-                    }
-                }
-            }
-            Ok(false)
-        },
         Mode::Normal => { 
             if let Event::Key(key) = event::read()? {
                 match key.code {
@@ -30,6 +21,7 @@ pub fn handle(app: &mut App) -> std::io::Result<bool> {
                     KeyCode::Enter => {
                         match app.focus {
                             Focus::Playlists => {
+                                client.lock().unwrap().playlist_tracks(app).await;
                                 app.body = Body::Tracks;
                                 app.focus = Focus::Body;
                             }

@@ -14,7 +14,6 @@ pub struct App {
 }
 
 pub enum Mode {
-    Authenticating,
     Normal,
     Editing,
 }
@@ -35,7 +34,7 @@ impl App {
     pub const fn init() -> Self {
         Self {
             input: String::new(),
-            mode: Mode::Authenticating,
+            mode: Mode::Normal,
             focus: Focus::Playlists,
             body: Body::Welcome,
             liked_playlists: None,

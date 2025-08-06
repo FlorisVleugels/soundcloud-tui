@@ -126,12 +126,11 @@ impl Client {
         }
     }
 
-    pub async fn playlist_tracks(&self, app: &Arc<Mutex<App>>) {
-        let tracks_url = app.lock().unwrap().liked_playlists.as_ref().unwrap().collection.iter().next().unwrap().tracks_uri.clone();
-        let tracks_uri = &tracks_url[..];
-        let response = api::playlist_tracks(&self.access_token.0, &self.client, tracks_uri).await;
+    pub async fn playlist_tracks(&self, app: &mut App) {
+        let tracks_url = &app.liked_playlists.as_ref().unwrap().collection.iter().nth(app.playlists_index).unwrap().tracks_uri[..];
+        let response = api::playlist_tracks(&self.access_token.0, &self.client, tracks_url).await;
         if let Ok(tracks) = response {
-            app.lock().unwrap().tracks = Some(tracks)
+            app.tracks = Some(tracks)
         }
     }
 }
