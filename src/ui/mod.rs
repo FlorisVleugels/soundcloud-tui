@@ -1,5 +1,5 @@
-use std::{fs, iter};
-use super::app::{App, Mode};
+use std::fs;
+
 use ratatui::{
     layout::{Layout, Position, Rect},
     style::{Color, Style},
@@ -8,6 +8,7 @@ use ratatui::{
     Frame,
 };
 
+use crate::app::{App, Body, Focus, Mode};
 use constants::*;
 
 mod constants;
@@ -45,7 +46,7 @@ fn draw_top_bar(frame: &mut Frame, app: &mut App, rect: Rect) {
     let paragraph = Paragraph::new("Type ?")
         .block(Block::bordered().title("Help"));
 
-    draw_search_box(frame, app, search_area);
+    draw_search(frame, app, search_area);
     frame.render_widget(paragraph, help_area);
 }
 
@@ -64,6 +65,26 @@ fn draw_body(
     let vertical_bar = Layout::vertical(BODY_BAR_CONSTRAINTS);
     let [top_area, bot_area] = vertical_bar.areas(bar_area);
 
+    draw_main_panel(frame, body_area, app);
+    draw_library(frame, top_area, app);
+    draw_playlists(frame, bot_area, app);
+}
+
+fn draw_main_panel(
+    frame: &mut Frame,
+    rect: Rect,
+    app: &mut App,
+) {
+    match app.body {
+        Body::Welcome => draw_welcome(frame, rect),
+        Body::Tracks => draw_tracks(frame, rect, app),
+    }
+}
+
+fn draw_welcome(
+    frame: &mut Frame,
+    rect: Rect,
+) {
     let changelog: String = fs::read_to_string("CHANGELOG.md").unwrap();
     let changelog = Text::from(changelog);
     let paragraph = Paragraph::new(format!(
@@ -77,12 +98,10 @@ fn draw_body(
             .padding(Padding::new(5,5,2,2))
         );
 
-    frame.render_widget(paragraph, body_area);
-    draw_library_box(frame, top_area, app);
-    draw_playlist_box(frame, bot_area, app);
+    frame.render_widget(paragraph, rect);
 }
 
-fn draw_playlist_box(
+fn draw_playlists(
     frame: &mut Frame,
     rect: Rect,
     app: &mut App
@@ -107,7 +126,39 @@ fn draw_playlist_box(
     }
 }
 
-fn draw_library_box(
+fn draw_tracks(
+    frame: &mut Frame,
+    rect: Rect,
+    app: &mut App
+) {
+    if let Some(tracks) = &app.tracks {
+        let mut titles = vec![];
+        for (i, tracks) in tracks.collection.iter().enumerate() {
+            match app.focus {
+                Focus::Body => {
+                    if &i == &app.body_index {
+                        titles.push(Line::from(&tracks.title[..])
+                            .style(Color::Red));
+                            } else {
+                                titles.push(Line::from(&tracks.title[..]));
+                    }
+                }
+                _ => {
+                    titles.push(Line::from(&tracks.title[..]));
+                }
+            }
+        }
+        let paragraph = Paragraph::new(titles)
+            .block(Block::bordered()
+                .title("Tracks")
+            );
+        frame.render_widget(paragraph, rect);
+    } else {
+        frame.render_widget(Block::bordered().title("Tracks"), rect);
+    }
+}
+
+fn draw_library(
     frame: &mut Frame,
     rect: Rect,
     app: &mut App
@@ -125,7 +176,7 @@ fn draw_library_box(
     frame.render_widget(paragraph, rect);
 }
 
-fn draw_search_box(frame: &mut Frame, app: &mut App, rect: Rect) {
+fn draw_search(frame: &mut Frame, app: &mut App, rect: Rect) {
     let input = Paragraph::new(app.input.as_str())
         .style(match app.mode {
             Mode::Editing => Style::default().fg(Color::Yellow),

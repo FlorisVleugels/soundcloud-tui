@@ -50,13 +50,19 @@ impl App {
     pub fn increase_index(&mut self) {
         match self.focus {
             Focus::Body => { 
-                self.body_index = self.body_index.saturating_add(1)
+                if self.body_index < self.liked_playlists.iter().len() {
+                    self.body_index = self.body_index.saturating_add(1)
+                }
             }
             Focus::Library => {
                 self.library_index = self.library_index.saturating_add(1)
             }
             Focus::Playlists => {
-                self.playlists_index = self.playlists_index.saturating_add(1)
+                if self.playlists_index < self.liked_playlists.as_ref().unwrap().collection.iter().len() - 1 {
+                    self.playlists_index = self.playlists_index + 1
+                } else {
+                    self.playlists_index = 0;
+                }
             }
             _ => {}
         }
@@ -71,9 +77,19 @@ impl App {
                 self.library_index = self.library_index.saturating_sub(1)
             }
             Focus::Playlists => {
-                self.playlists_index = self.playlists_index.saturating_sub(1)
+                if self.playlists_index == 0  {
+                    self.playlists_index = self.liked_playlists.as_ref().unwrap().collection.iter().len() - 1
+                } else {
+                    self.playlists_index = self.playlists_index - 1
+                }
             }
             _ => {}
+        }
+    }
+
+    fn increase(i: &mut usize, length: &usize) {
+        if *i < length - 1 {
+        } else {
         }
     }
 

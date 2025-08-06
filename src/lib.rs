@@ -36,6 +36,7 @@ pub async fn run(terminal: &mut ratatui::DefaultTerminal) -> Result<(), Box<dyn 
     // after every refresh happens, not here
     client.lock().unwrap().store_refresh_token();
     client.lock().unwrap().liked_playlists(&app).await;
+    client.lock().unwrap().playlist_tracks(&app).await;
 
     loop {
         terminal.draw(|frame| ui::render_app(frame, &mut *app.lock().unwrap()))?;
