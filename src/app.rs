@@ -50,8 +50,10 @@ impl App {
     pub fn increase_index(&mut self) {
         match self.focus {
             Focus::Body => { 
-                if self.body_index < self.liked_playlists.iter().len() {
-                    self.body_index = self.body_index.saturating_add(1)
+                if self.body_index < self.tracks.as_ref().unwrap().collection.iter().len() - 1 {
+                    self.body_index = self.body_index + 1
+                } else {
+                    self.body_index = 0;
                 }
             }
             Focus::Library => {
@@ -71,7 +73,11 @@ impl App {
     pub fn decrease_index(&mut self) {
         match self.focus {
             Focus::Body => { 
-                self.body_index = self.body_index.saturating_sub(1)
+                if self.body_index == 0  {
+                    self.body_index = self.tracks.as_ref().unwrap().collection.iter().len() - 1
+                } else {
+                    self.body_index = self.body_index - 1
+                }
             }
             Focus::Library => {
                 self.library_index = self.library_index.saturating_sub(1)

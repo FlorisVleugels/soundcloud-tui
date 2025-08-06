@@ -1,7 +1,8 @@
 use std::time::Duration;
 
-use super::app::{App, Mode};
 use crossterm::event::{self, poll, Event, KeyCode, KeyEventKind};
+
+use crate::app::{App, Body, Focus, Mode};
 
 pub fn handle(app: &mut App) -> std::io::Result<bool> {
     match app.mode {
@@ -26,7 +27,19 @@ pub fn handle(app: &mut App) -> std::io::Result<bool> {
                     }
                     KeyCode::Char('j') => app.increase_index(),
                     KeyCode::Char('k') => app.decrease_index(),
-                    KeyCode::Enter => {}
+                    KeyCode::Enter => {
+                        match app.focus {
+                            Focus::Playlists => {
+                                app.body = Body::Tracks;
+                                app.focus = Focus::Body;
+                            }
+                            _ => {}
+                        }
+                    }
+                    KeyCode::Esc => {
+                        app.body = Body::Welcome;
+                        app.focus = Focus::Playlists;
+                    }
                     _ => {}
                 }
             }

@@ -109,11 +109,18 @@ fn draw_playlists(
     if let Some(playlists) = &app.liked_playlists {
         let mut titles = vec![];
         for (i, playlist) in playlists.collection.iter().enumerate() {
-            if &i == &app.playlists_index {
-                titles.push(Line::from(&playlist.title[..])
-                    .style(Color::Red));
-            } else {
-                titles.push(Line::from(&playlist.title[..]));
+            match app.focus {
+                Focus::Playlists => {
+                    if &i == &app.playlists_index {
+                        titles.push(Line::from(&playlist.title[..])
+                            .style(Color::Red));
+                            } else {
+                                titles.push(Line::from(&playlist.title[..]));
+                    }
+                }
+                _ => {
+                    titles.push(Line::from(&playlist.title[..]));
+                }
             }
         }
         let paragraph = Paragraph::new(titles)
