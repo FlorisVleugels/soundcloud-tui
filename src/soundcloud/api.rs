@@ -32,13 +32,34 @@ pub struct Playlists {
 #[derive(Deserialize, Debug)]
 pub struct Track {
     pub title: String,
+    pub duration: u32,
+    pub user: User,
+    pub metadata_artist: String,
     pub stream_url: String,
+    pub genre: String,
+    pub waveform_url: String,
 }
 
 #[derive(Deserialize, Debug)]
 pub struct Tracks {
     pub collection: Vec<Track>,
     pub next_href: String,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct User {
+    pub username: String,
+}
+
+impl Track {
+    pub fn table_row_data(&self) -> Vec<&str> {
+        vec![
+            &self.title[..],
+            &self.user.username[..],
+            &self.genre[..],
+            &self.genre[..],
+        ]
+    }
 }
 
 pub async fn oauth_tokens(

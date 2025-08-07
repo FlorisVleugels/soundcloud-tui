@@ -2,9 +2,9 @@ use std::fs;
 
 use ratatui::{
     layout::{Layout, Position, Rect},
-    style::{Color, Style},
-    text::{Text, Line},
-    widgets::{Block, Paragraph, Padding, Wrap},
+    style::{Color, Style, Stylize},
+    text::{Line, Text},
+    widgets::{Block, Padding, Paragraph, Row, Table, Wrap},
     Frame,
 };
 
@@ -113,7 +113,7 @@ fn draw_playlists(
                 Focus::Playlists => {
                     if &i == &app.playlists_index {
                         titles.push(Line::from(&playlist.title[..])
-                            .style(Color::Red));
+                            .style(Color::Yellow));
                             } else {
                                 titles.push(Line::from(&playlist.title[..]));
                     }
@@ -139,27 +139,29 @@ fn draw_tracks(
     app: &mut App
 ) {
     if let Some(tracks) = &app.tracks {
-        let mut titles = vec![];
-        for (i, tracks) in tracks.collection.iter().enumerate() {
+        let header = Row::new(vec!["Title", "Artists", "Genre", "Duration"])
+            .style(Color::Yellow).bottom_margin(1);
+        let mut rows = vec![header];
+        for (i, track) in tracks.collection.iter().enumerate() {
             match app.focus {
                 Focus::Body => {
                     if &i == &app.body_index {
-                        titles.push(Line::from(&tracks.title[..])
-                            .style(Color::Red));
-                            } else {
-                                titles.push(Line::from(&tracks.title[..]));
+                        rows.push(Row::new(track.table_row_data())
+                            .style(Color::Yellow));
+                    } else {
+                        rows.push(Row::new(track.table_row_data()));
                     }
                 }
                 _ => {
-                    titles.push(Line::from(&tracks.title[..]));
+                    rows.push(Row::new(track.table_row_data()));
                 }
             }
         }
-        let paragraph = Paragraph::new(titles)
+        let table = Table::new(rows, TABLE_COLUMN_WIDTHS)
             .block(Block::bordered()
                 .title("Tracks")
             );
-        frame.render_widget(paragraph, rect);
+        frame.render_widget(table, rect);
     } else {
         frame.render_widget(Block::bordered().title("Tracks"), rect);
     }
