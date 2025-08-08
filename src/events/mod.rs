@@ -25,6 +25,10 @@ pub async fn handle(app: &mut App, client: &Arc<Mutex<Client>>) -> std::io::Resu
                                 app.body = Body::Tracks;
                                 app.focus = Focus::Body;
                             }
+                            Focus::Body => {
+                                app.play_track();
+                                app.focus = Focus::Status;
+                            }
                             _ => {}
                         }
                     }

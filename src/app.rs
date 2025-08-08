@@ -1,10 +1,11 @@
-use crate::soundcloud::api::{Playlists, Tracks};
+use crate::soundcloud::api::{Playlists, Track, Tracks};
 
 pub struct App {
     pub input: String,
     pub mode: Mode,
     pub focus: Focus,
     pub body: Body,
+    pub status: Option<Track>,
     pub liked_playlists: Option<Playlists>,
     pub tracks: Option<Tracks>,
     pub search_index: usize,
@@ -37,6 +38,7 @@ impl App {
             mode: Mode::Normal,
             focus: Focus::Playlists,
             body: Body::Welcome,
+            status: None,
             liked_playlists: None,
             tracks: None,
             search_index: 0,
@@ -95,6 +97,12 @@ impl App {
     fn increase(i: &mut usize, length: &usize) {
         if *i < length - 1 {
         } else {
+        }
+    }
+
+    pub fn play_track(&mut self) {
+        if let Some(tracks) = &self.tracks {
+            self.status = Some(tracks.collection.iter().nth(self.body_index).unwrap().clone());
         }
     }
 

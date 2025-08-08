@@ -14,4 +14,4 @@ pub const TOP_BAR_CONSTRAINTS: [Constraint; 2] = [Constraint::Percentage(95), Co
 pub const BODY_CONSTRAINTS: [Constraint; 2] = [Constraint::Percentage(88), Constraint::Percentage(12)];
 pub const BODY_BAR_CONSTRAINTS: [Constraint; 2] = [Constraint::Percentage(20), Constraint::Percentage(80)];
 
-pub const TABLE_COLUMN_WIDTHS: [Constraint; 4] = [Constraint::Percentage(25); 4];
+pub const TABLE_COLUMN_WIDTHS: [Constraint; 4] = [Constraint::Percentage(40), Constraint::Percentage(20), Constraint::Percentage(20), Constraint::Percentage(20)];

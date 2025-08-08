@@ -36,7 +36,7 @@ pub fn render_app(
 
     draw_top_bar(frame, app, title_area);
     draw_body(frame, main_area, app);
-    draw_status_bar(frame, status_area);
+    draw_status_bar(frame, status_area, app);
 }
 
 fn draw_top_bar(frame: &mut Frame, app: &mut App, rect: Rect) {
@@ -50,8 +50,14 @@ fn draw_top_bar(frame: &mut Frame, app: &mut App, rect: Rect) {
     frame.render_widget(paragraph, help_area);
 }
 
-fn draw_status_bar(frame: &mut Frame, rect: Rect) {
-    frame.render_widget(Block::bordered().title("Playing (Test Song - Test Band)"), rect);
+fn draw_status_bar(frame: &mut Frame, rect: Rect, app: &mut App) {
+    if let Some(track) = &app.status {
+        frame.render_widget(
+            Block::bordered()
+            .title(format!("{} - {}", &track.title[..], &track.user.username[..])), rect);
+    } else {
+        frame.render_widget(Block::bordered(), rect);
+    }
 }
 
 fn draw_body(
@@ -139,7 +145,7 @@ fn draw_tracks(
     app: &mut App
 ) {
     if let Some(tracks) = &app.tracks {
-        let header = Row::new(vec!["Title", "Artists", "Genre", "Duration"])
+        let header = Row::new(vec!["Title", "Publisher", "Genre", "Duration"])
             .style(Color::Yellow).bottom_margin(1);
         let mut rows = vec![header];
         for (i, track) in tracks.collection.iter().enumerate() {
