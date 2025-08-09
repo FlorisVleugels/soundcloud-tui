@@ -133,4 +133,13 @@ impl Client {
             app.tracks = Some(tracks)
         }
     }
+
+    pub async fn _waveform(&self, app: &mut App) {
+        if let Some(track) = &mut app.status {
+            let response = api::waveform(&self.client, &track.waveform_url[..]).await;
+            if let Ok(waveform) = response {
+                track.waveform = Some(waveform);
+            }
+        }
+    }
 }

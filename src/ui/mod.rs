@@ -4,11 +4,11 @@ use ratatui::{
     layout::{Layout, Position, Rect},
     style::{Color, Style, Stylize},
     text::{Line, Text},
-    widgets::{Block, Padding, Paragraph, Row, Table, Wrap},
+    widgets::{Bar, BarChart, BarGroup, Block, Padding, Paragraph, Row, Table, Wrap},
     Frame,
 };
 
-use crate::app::{App, Body, Focus, Mode};
+use crate::{app::{App, Body, Focus, Mode}, soundcloud::api::Track};
 use constants::*;
 
 mod constants;
@@ -54,6 +54,10 @@ fn draw_status_bar(frame: &mut Frame, rect: Rect, app: &mut App) {
     if let Some(track) = &app.status {
         frame.render_widget(
             Block::bordered()
+            .border_style(match app.focus {
+                    Focus::Status => Color::Yellow,
+                    _ => Color::default()
+                })
             .title(format!("{} - {}", &track.title[..], &track.user.username[..])), rect);
     } else {
         frame.render_widget(Block::bordered(), rect);
@@ -131,7 +135,10 @@ fn draw_playlists(
         }
         let paragraph = Paragraph::new(titles)
             .block(Block::bordered()
-                .title("Playlists")
+                .title("Playlists").border_style(match app.focus {
+                    Focus::Playlists => Color::Yellow,
+                    _ => Color::default()
+                })
             );
         frame.render_widget(paragraph, rect);
     } else {
@@ -164,7 +171,10 @@ fn draw_tracks(
             }
         }
         let table = Table::new(rows, TABLE_COLUMN_WIDTHS)
-            .block(Block::bordered()
+            .block(Block::bordered().border_style(match app.focus {
+                    Focus::Body => Color::Yellow,
+                    _ => Color::default()
+                })
                 .title("Tracks")
             );
         frame.render_widget(table, rect);
@@ -214,4 +224,16 @@ fn draw_search(frame: &mut Frame, app: &mut App, rect: Rect) {
         )),
         _ => {}
     }
+}
+
+fn _waveform_chart(track: &Track) -> BarChart {
+    let mut bars: Vec<Bar> = vec![];
+    if let Some(waveform) = &track.waveform {
+        for value in waveform {
+            bars.push(Bar::default().value(value.clone().into()));
+        }
+    }
+    BarChart::default()
+        .data(BarGroup::default().bars(&bars))
+        .block(Block::new())
 }

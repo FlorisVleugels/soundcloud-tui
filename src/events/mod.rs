@@ -1,6 +1,6 @@
-use std::{sync::{Arc, Mutex}, time::Duration};
+use std::sync::{Arc, Mutex};
 
-use crossterm::event::{self, poll, Event, KeyCode, KeyEventKind};
+use crossterm::event::{self, Event, KeyCode, KeyEventKind};
 
 use crate::app::{App, Body, Focus, Mode};
 use crate::soundcloud::client::Client;

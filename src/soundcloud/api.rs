@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, u8};
 
 use reqwest::Error;
 use serde::Deserialize;
@@ -33,11 +33,13 @@ pub struct Playlists {
 pub struct Track {
     pub title: String,
     pub duration: u32,
+    pub duration_str: Option<String>,
     pub user: User,
     pub metadata_artist: Option<String>,
     pub stream_url: String,
     pub genre: String,
     pub waveform_url: String,
+    pub waveform: Option<Vec<u8>>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -173,6 +175,21 @@ pub async fn playlist_tracks(
         .send()
         .await?
         .json::<Tracks>()
+        .await?;
+
+    Ok(response)
+}
+
+pub async fn waveform(
+    client: &reqwest::Client,
+    waveform_url: &str
+) -> Result<Vec<u8>, Error> {
+    let response = client
+        .get(waveform_url)
+        .header("accept", "application/json; charset=utf-8")
+        .send()
+        .await?
+        .json::<Vec<u8>>()
         .await?;
 
     Ok(response)
