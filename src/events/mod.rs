@@ -10,6 +10,7 @@ pub async fn handle(app: &mut App, client: &Arc<Mutex<Client>>) -> std::io::Resu
         Mode::Normal => { 
             if let Event::Key(key) = event::read()? {
                 match key.code {
+                    KeyCode::Char('?') => app.toggle_help(),
                     KeyCode::Char('/') => {
                         app.mode = Mode::Editing;
                     }

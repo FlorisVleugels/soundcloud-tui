@@ -8,7 +8,10 @@ use ratatui::{
     Frame,
 };
 
-use crate::{app::{App, Body, Focus, Mode}, soundcloud::api::Track};
+use crate::{
+    app::{App, Body, Focus, Mode}, 
+    soundcloud::models::Track
+};
 use constants::*;
 
 mod constants;
@@ -78,6 +81,9 @@ fn draw_body(
     draw_main_panel(frame, body_area, app);
     draw_library(frame, top_area, app);
     draw_playlists(frame, bot_area, app);
+    if app.show_help {
+        draw_help(frame);
+    }
 }
 
 fn draw_main_panel(
@@ -224,6 +230,17 @@ fn draw_search(frame: &mut Frame, app: &mut App, rect: Rect) {
         )),
         _ => {}
     }
+}
+
+fn draw_help(frame: &mut Frame) {
+    let vertical = Layout::vertical(HELP_WINDOW_CONSTRANTS);
+    let [_, main_area, _] = vertical.areas(frame.area());
+
+    let horizontal_body = Layout::horizontal(HELP_WINDOW_CONSTRANTS);
+    let [_, help_area, _] = horizontal_body.areas(main_area);
+
+    let help_widget = Block::bordered().title("Help");
+    frame.render_widget(help_widget, help_area);
 }
 
 fn _waveform_chart(track: &Track) -> BarChart {

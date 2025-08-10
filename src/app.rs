@@ -1,4 +1,4 @@
-use crate::soundcloud::api::{Playlists, Track, Tracks};
+use crate::soundcloud::models::{Playlists, Track, Tracks};
 
 pub struct App {
     pub input: String,
@@ -6,6 +6,7 @@ pub struct App {
     pub focus: Focus,
     pub body: Body,
     pub status: Option<Track>,
+    pub show_help: bool,
     pub liked_playlists: Option<Playlists>,
     pub tracks: Option<Tracks>,
     pub search_index: usize,
@@ -39,6 +40,7 @@ impl App {
             focus: Focus::Playlists,
             body: Body::Welcome,
             status: None,
+            show_help: false,
             liked_playlists: None,
             tracks: None,
             search_index: 0,
@@ -98,6 +100,10 @@ impl App {
         if *i < length - 1 {
         } else {
         }
+    }
+
+    pub fn toggle_help(&mut self) {
+        self.show_help = !self.show_help
     }
 
     pub fn play_track(&mut self) {

@@ -1,6 +1,7 @@
 use std::error::Error;
 use std::fs::{self, File};
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 use serde_yaml::Value;
 use serde::{Serialize, Deserialize};
 
@@ -129,7 +130,12 @@ impl Client {
     pub async fn playlist_tracks(&self, app: &mut App) {
         let tracks_url = &app.liked_playlists.as_ref().unwrap().collection.iter().nth(app.playlists_index).unwrap().tracks_uri[..];
         let response = api::playlist_tracks(&self.access_token.0, &self.client, tracks_url).await;
-        if let Ok(tracks) = response {
+        if let Ok(mut tracks) = response {
+            for track in &mut tracks.collection {
+                let seconds = Duration::from_millis(track.duration.into())
+                    .as_secs();
+                track.duration_str = Some(format!("{}:{:02}", (seconds / 60), (seconds % 60)));
+            }
             app.tracks = Some(tracks)
         }
     }
