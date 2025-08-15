@@ -5,10 +5,11 @@ pub struct App {
     pub mode: Mode,
     pub focus: Focus,
     pub body: Body,
-    pub status: Option<Track>,
+    pub status: Status,
     pub show_help: bool,
     pub liked_playlists: Option<Playlists>,
     pub tracks: Option<Tracks>,
+    pub current_track: Option<Track>,
     pub search_index: usize,
     pub playlists_index: usize,
     pub library_index: usize,
@@ -32,6 +33,11 @@ pub enum Body {
     Tracks, 
 }
 
+pub enum Status {
+    Playing,
+    Paused, 
+}
+
 impl App {
     pub const fn init() -> Self {
         Self {
@@ -39,10 +45,11 @@ impl App {
             mode: Mode::Normal,
             focus: Focus::Playlists,
             body: Body::Welcome,
-            status: None,
+            status: Status::Paused,
             show_help: false,
             liked_playlists: None,
             tracks: None,
+            current_track: None,
             search_index: 0,
             playlists_index: 0,
             library_index: 0,
@@ -102,13 +109,17 @@ impl App {
         }
     }
 
+    pub fn title(&self) -> &str {
+        &self.liked_playlists.as_ref().unwrap().collection.iter().nth(self.playlists_index).unwrap().title[..]
+    }
+
     pub fn toggle_help(&mut self) {
         self.show_help = !self.show_help
     }
 
     pub fn play_track(&mut self) {
         if let Some(tracks) = &self.tracks {
-            self.status = Some(tracks.collection.iter().nth(self.body_index).unwrap().clone());
+            self.current_track = Some(tracks.collection.iter().nth(self.body_index).unwrap().clone());
         }
     }
 

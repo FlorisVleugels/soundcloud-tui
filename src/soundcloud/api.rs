@@ -124,6 +124,23 @@ pub async fn playlist_tracks(
     Ok(response)
 }
 
+pub async fn stream(
+    access_token: &String,
+    client: &reqwest::Client,
+    stream_url: &str,
+) -> Result<Tracks, Error> {
+    let response = client
+        .get(stream_url)
+        .header("accept", "application/json; charset=utf-8")
+        .header("Authorization", format!("OAuth {}", access_token))
+        .send()
+        .await?
+        .json::<Tracks>()
+        .await?;
+
+    Ok(response)
+}
+
 pub async fn waveform(
     client: &reqwest::Client,
     waveform_url: &str

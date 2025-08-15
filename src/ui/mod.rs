@@ -2,9 +2,9 @@ use std::fs;
 
 use ratatui::{
     layout::{Layout, Position, Rect},
-    style::{Color, Style, Stylize},
+    style::{Color, Style},
     text::{Line, Text},
-    widgets::{Bar, BarChart, BarGroup, Block, Padding, Paragraph, Row, Table, Wrap},
+    widgets::{Bar, BarChart, BarGroup, Block, Clear, Padding, Paragraph, Row, Table, Wrap},
     Frame,
 };
 
@@ -54,7 +54,7 @@ fn draw_top_bar(frame: &mut Frame, app: &mut App, rect: Rect) {
 }
 
 fn draw_status_bar(frame: &mut Frame, rect: Rect, app: &mut App) {
-    if let Some(track) = &app.status {
+    if let Some(track) = &app.current_track {
         frame.render_widget(
             Block::bordered()
             .border_style(match app.focus {
@@ -101,7 +101,7 @@ fn draw_welcome(
     frame: &mut Frame,
     rect: Rect,
 ) {
-    let changelog: String = fs::read_to_string("CHANGELOG.md").unwrap();
+    let changelog: String = fs::read_to_string("TODO.md").unwrap();
     let changelog = Text::from(changelog);
     let paragraph = Paragraph::new(format!(
             "{}\nPlease report any bugs or missing features \
@@ -181,7 +181,7 @@ fn draw_tracks(
                     Focus::Body => Color::Yellow,
                     _ => Color::default()
                 })
-                .title("Tracks")
+                .title(app.title())
             );
         frame.render_widget(table, rect);
     } else {
@@ -240,6 +240,8 @@ fn draw_help(frame: &mut Frame) {
     let [_, help_area, _] = horizontal_body.areas(main_area);
 
     let help_widget = Block::bordered().title("Help");
+
+    frame.render_widget(Clear, help_area);
     frame.render_widget(help_widget, help_area);
 }
 
