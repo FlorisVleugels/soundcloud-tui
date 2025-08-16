@@ -12,6 +12,7 @@
 
 
 ## Code
+- Apply nested layout code instead of what i have now
 - Deal with duplicate code in index increase /decrease
 - Deal with duplicate code in ui draw functions (and tracks table)
 - Deal with clone() calls, should be able to remove

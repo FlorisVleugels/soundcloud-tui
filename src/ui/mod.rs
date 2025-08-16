@@ -2,9 +2,9 @@ use std::fs;
 
 use ratatui::{
     layout::{Layout, Position, Rect},
-    style::{Color, Style},
-    text::{Line, Text},
-    widgets::{Bar, BarChart, BarGroup, Block, Clear, Padding, Paragraph, Row, Table, Wrap},
+    style::{Color, Style, Stylize},
+    text::{Line, Span, Text},
+    widgets::{Bar, BarChart, BarGroup, Block, Borders, Clear, Padding, Paragraph, Row, Table, Wrap},
     Frame,
 };
 
@@ -15,6 +15,7 @@ use crate::{
 use constants::*;
 
 mod constants;
+mod help;
 
 pub fn auth(frame: &mut Frame) {
     let paragraph = Paragraph::new(format!(
@@ -176,7 +177,7 @@ fn draw_tracks(
                 }
             }
         }
-        let table = Table::new(rows, TABLE_COLUMN_WIDTHS)
+        let table = Table::new(rows, TRACKS_COLUMN_WIDTHS)
             .block(Block::bordered().border_style(match app.focus {
                     Focus::Body => Color::Yellow,
                     _ => Color::default()
@@ -223,26 +224,35 @@ fn draw_search(frame: &mut Frame, app: &mut App, rect: Rect) {
                 rect.y + 1,
         ))
     }
-    match app.mode {
-        Mode::Editing => frame.set_cursor_position(Position::new(
-                rect.x + app.search_index as u16 + 1,
-                rect.y + 1,
-        )),
-        _ => {}
-    }
 }
 
 fn draw_help(frame: &mut Frame) {
     let vertical = Layout::vertical(HELP_WINDOW_CONSTRANTS);
     let [_, main_area, _] = vertical.areas(frame.area());
-
     let horizontal_body = Layout::horizontal(HELP_WINDOW_CONSTRANTS);
     let [_, help_area, _] = horizontal_body.areas(main_area);
 
-    let help_widget = Block::bordered().title("Help");
+    let horizontal_body = Layout::horizontal(INNER_HELP_HORIZONTAL);
+    let [_, mid_area, _] = horizontal_body.areas(help_area);
+    let vertical = Layout::vertical(INNER_HELP_VERTICAL);
+    let [_, keybind_area, theme_area, _] = vertical.areas(mid_area);
+
+    let help = Block::bordered().title("Help").padding(Padding::new(5, 5, 1, 1));
 
     frame.render_widget(Clear, help_area);
-    frame.render_widget(help_widget, help_area);
+    frame.render_widget(help, help_area);
+    draw_keybinds(frame, keybind_area);
+    draw_theme(frame, theme_area);
+}
+
+fn draw_keybinds(frame: &mut Frame, rect: Rect) {
+    let keybinds = Block::new().borders(Borders::TOP).title("Keybinds");
+    frame.render_widget(keybinds, rect);
+}
+
+fn draw_theme(frame: &mut Frame, rect: Rect) {
+    let theme = Block::new().borders(Borders::TOP).title("Theme");
+    frame.render_widget(theme, rect);
 }
 
 fn _waveform_chart(track: &Track) -> BarChart {
