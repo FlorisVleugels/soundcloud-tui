@@ -9,6 +9,7 @@
 - Improve state management in app struct
 - Add handlers for calling the client api methods from key presses
 - Improve event handler code
+- Add error page for main panel when couldnt load something
 
 
 ## Code

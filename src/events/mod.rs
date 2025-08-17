@@ -28,6 +28,7 @@ pub async fn handle(app: &mut App, client: &Arc<Mutex<Client>>) -> std::io::Resu
                             }
                             Focus::Body => {
                                 app.play_track();
+                                client.lock().unwrap().streams(app).await;
                                 app.focus = Focus::Status;
                             }
                             _ => {}

@@ -45,6 +45,14 @@ pub struct User {
     pub username: String,
 }
 
+#[derive(Deserialize, Debug)]
+pub struct Streams {
+    pub http_mp3_128_url: String,
+    pub hls_mp3_128_url: String,
+    pub hls_opus_64_url: String,
+    pub preview_mp3_128_url: String,
+}
+
 impl Track {
     pub fn table_row_data(&self) -> Vec<&str> {
         vec![

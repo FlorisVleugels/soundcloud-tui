@@ -1,6 +1,7 @@
 mod app;
 mod events;
 mod handlers;
+mod playback;
 mod soundcloud;
 mod ui;
 

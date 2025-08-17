@@ -1,11 +1,14 @@
-use crate::soundcloud::models::{Playlists, Track, Tracks};
+use crate::{
+    playback::Playback, 
+    soundcloud::models::{Playlists, Track, Tracks}
+};
 
 pub struct App {
     pub input: String,
     pub mode: Mode,
     pub focus: Focus,
     pub body: Body,
-    pub status: Status,
+    pub playback: Playback,
     pub show_help: bool,
     pub liked_playlists: Option<Playlists>,
     pub tracks: Option<Tracks>,
@@ -33,11 +36,6 @@ pub enum Body {
     Tracks, 
 }
 
-pub enum Status {
-    Playing,
-    Paused, 
-}
-
 impl App {
     pub const fn init() -> Self {
         Self {
@@ -45,7 +43,12 @@ impl App {
             mode: Mode::Normal,
             focus: Focus::Playlists,
             body: Body::Welcome,
-            status: Status::Paused,
+            playback: Playback {
+               streams: None,
+               status: None,
+               volume: None,
+               position: None,
+            },
             show_help: false,
             liked_playlists: None,
             tracks: None,
