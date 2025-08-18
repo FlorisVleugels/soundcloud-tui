@@ -28,7 +28,7 @@ pub struct Track {
     pub duration_str: Option<String>,
     pub user: User,
     pub metadata_artist: Option<String>,
-    pub stream_url: String,
+    pub urn: String,
     pub genre: String,
     pub waveform_url: String,
     pub waveform: Option<Vec<u8>>,

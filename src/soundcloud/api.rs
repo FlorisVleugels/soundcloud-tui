@@ -71,7 +71,6 @@ pub async fn liked_playlists(
 ) -> Result<Playlists, Error> {
     let limit = "limit=20";
     let url = format!("{}me/likes/playlists?{}&linked_partitioning=true", BASE_URL, limit);
-
     let response = client
         .get(url)
         .header("accept", "application/json; charset=utf-8")
@@ -91,7 +90,6 @@ pub async fn liked_tracks(
     let limit = "limit=20";
     let access = "access=playable";
     let url = format!("{}me/likes/tracks?{}&{}&linked_partitioning=true", BASE_URL, limit, access);
-
     let response = client
         .get(url)
         .header("accept", "application/json; charset=utf-8")
@@ -111,7 +109,6 @@ pub async fn playlist_tracks(
 ) -> Result<Tracks, Error> {
     let access = "access=playable";
     let url = format!("{}?{}&linked_partitioning=true", tracks_url, access);
-
     let response = client
         .get(url)
         .header("accept", "application/json; charset=utf-8")
@@ -127,10 +124,11 @@ pub async fn playlist_tracks(
 pub async fn streams(
     access_token: &String,
     client: &reqwest::Client,
-    stream_url: &str,
+    track_urn: &str,
 ) -> Result<Streams, Error> {
+    let url = format!("{}/tracks/{}/streams", BASE_URL, track_urn);
     let response = client
-        .get(stream_url)
+        .get(url)
         .header("accept", "application/json; charset=utf-8")
         .header("Authorization", format!("OAuth {}", access_token))
         .send()

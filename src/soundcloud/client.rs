@@ -6,6 +6,7 @@ use serde_yaml::Value;
 use serde::{Serialize, Deserialize};
 
 use crate::app::App;
+use crate::playback::Playback;
 
 use super::api;
 use super::config::ClientConfig;
@@ -142,10 +143,16 @@ impl Client {
 
     pub async fn streams(&self, app: &mut App) {
         if let Some(current_track) = &app.current_track {
-            let stream_url = &current_track.stream_url[..];
-            let response = api::streams(&self.access_token.0, &self.client, stream_url).await;
+            let track_urn = &current_track.urn[..];
+            let response = api::streams(&self.access_token.0, &self.client, track_urn).await;
             if let Ok(streams) = response {
-                app.playback.streams = Some(streams)
+                app.playback = Some( Playback {
+                    streams,
+                    volume: None,
+                    status: None, 
+                    position: None,
+                    cmd: None,
+                })
             }
         }
     }
