@@ -148,10 +148,9 @@ impl Client {
             if let Ok(streams) = response {
                 app.playback = Some( Playback {
                     streams,
-                    volume: None,
                     status: None, 
                     position: None,
-                    cmd: None,
+                    sink: None,
                 })
             }
         }
