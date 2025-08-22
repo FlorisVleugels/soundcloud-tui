@@ -27,5 +27,11 @@
 - Add configurable color themes
 - Add tracks body title depending on the playlist
 
+## Audio
+- Get audio streaming working with Symphonia and Rodio
+    1. make get request and stream the bytes
+    2. mp3 decode the stream
+    3. append the stream to the rodio sink
+
 ## Bugs?
 - Some fetch tracks doesnt work prolly cus json decode not working sometimes
