@@ -30,7 +30,7 @@ pub async fn handle(app: &mut App, client: &Arc<Mutex<Client>>) -> std::io::Resu
                                 app.play_track();
                                 client.lock().unwrap().streams(app).await;
                                 app.focus = Focus::Status;
-                                app.playback.as_mut().unwrap().start().await;
+                                app.playback.as_mut().unwrap().stream().await;
                             }
                             _ => {}
                         }

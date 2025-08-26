@@ -1,4 +1,4 @@
-use rodio::{OutputStreamBuilder, Sink, Source};
+use rodio::{OutputStreamBuilder, Sink, Source, StreamError};
 use symphonia::core::{
     audio::{AudioBufferRef, Signal}, 
     codecs::{DecoderOptions, CODEC_TYPE_NULL}, 
@@ -15,14 +15,15 @@ use crate::soundcloud::models::Streams;
 
 pub struct Playback {
     pub streams: Streams,
-    pub status: Option<Status>,
-    pub position: Option<u32>,
+    pub status: Status,
+    pub position: u32,
     pub sink: Option<Sink>
 }
 
 pub enum Status {
     Playing,
     Paused,
+    Available,
     Unavailable,
 }
 
@@ -59,15 +60,24 @@ impl Source for AudioSource {
 
 
 impl Playback {
-    pub async fn start(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn init(streams: Streams) -> Result<Self, StreamError> {
+        Ok(Self {
+            streams,
+            status: Status::Available,
+            position: 0,
+            sink: None,
+        })
+    }
+
+    pub async fn stream(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         let stream_handle = OutputStreamBuilder::open_default_stream()?;
         let sink = rodio::Sink::connect_new(&stream_handle.mixer());
-
         let mut stream = reqwest::get(&self.streams.http_mp3_128_url[..]).await?.bytes_stream();
 
-        let (tx, mut rx) = mpsc::channel(100);
+        let (tx, rx) = mpsc::channel(100);
         let source = AudioSource { rx, channels: 2, sample_rate: 44100 };
         sink.append(source);
+        self.sink = Some(sink);
 
         let handle = tokio::spawn(async move {
             let mut hint = Hint::new();
@@ -94,8 +104,6 @@ impl Playback {
                     let mut decoder = symphonia::default::get_codecs().make(&track.codec_params, &dec_opts)
                         .expect("unsupported codec");
 
-                    let track_id = track.id;
-
                     loop {
                         let packet = match format.next_packet() {
                             Ok(packet) => packet,
@@ -111,16 +119,16 @@ impl Playback {
                             format.metadata().pop();
                         }
 
-                        if packet.track_id() != track_id {
-                            continue;
-                        }
-
                         match decoder.decode(&packet) {
                             Ok(decoded) => {
                                 match decoded {
                                     AudioBufferRef::F32(buf) => {
-                                        for &sample in buf.chan(0) {
-                                            let _ = tx.send(sample).await;
+                                        let frames = buf.frames();
+                                        for frame in 0..frames {
+                                            for channel in 0..2 {
+                                                let sample = buf.chan(channel)[frame];
+                                                let _ = tx.send(sample).await;
+                                            }
                                         }
                                     }
                                     _ => unimplemented!(),
@@ -133,23 +141,29 @@ impl Playback {
                                 continue;
                             }
                             Err(err) => {
-                                panic!("{}", err);
+                                break;
                             }
                         }
                     }
                 }
             }
         });
-        
+
         let _ = handle.await;
 
         Ok(())
     }
 
     pub fn toggle(&self) {
+        //sink.pause()
+        //sink.play()
     }
 
-    pub fn resume(&self) {
+    pub fn increase() {
+        //sink.set_volume()
+    }
 
+    pub fn decrease() {
+        //sink.set_volume()
     }
 }
