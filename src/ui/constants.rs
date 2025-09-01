@@ -9,6 +9,8 @@ pub const HEADER_ASCII: &str = r#"
         \/                  \/      \/    \/                       \/
 "#;
 
+pub const LIBRARY_ITEMS: [&str; 4] = ["Recently Played", "Liked Tracks", "Artists", "Albums"];
+
 pub const MAIN_CONSTRAINTS: [Constraint; 3] = [Constraint::Length(3), Constraint::Min(0), Constraint::Length(6)];
 pub const TOP_BAR_CONSTRAINTS: [Constraint; 2] = [Constraint::Percentage(95), Constraint::Percentage(5)];
 pub const BODY_CONSTRAINTS: [Constraint; 2] = [Constraint::Percentage(88), Constraint::Percentage(12)];

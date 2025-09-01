@@ -14,7 +14,7 @@ use crate::{
 };
 use constants::*;
 
-mod constants;
+pub mod constants;
 mod help;
 
 pub fn auth(frame: &mut Frame) {
@@ -195,14 +195,26 @@ fn draw_library(
     rect: Rect,
     app: &mut App
 ) {
-    let items = vec![
-        Line::from("Recently Played"),
-        Line::from("Liked Tracks"),
-        Line::from("Artists"),
-        Line::from("Albums"),
-    ];
-    let paragraph = Paragraph::new(items)
-        .block(Block::bordered()
+    let mut lines = vec![];
+    for (i, &item) in LIBRARY_ITEMS.iter().enumerate() {
+        match app.focus {
+            Focus::Library => {
+                lines.push(Line::from(item)
+                    .style(if app.library_index == i {
+                        Color::Yellow 
+                    } else {
+                        Color::default()
+                    }))
+            },
+            _ => lines.push(Line::from(item))
+        }
+    }
+
+    let paragraph = Paragraph::new(lines)
+        .block(Block::bordered().border_style(match app.focus {
+            Focus::Library => Color::Yellow,
+            _ => Color::default()
+        })
             .title("Library")
         );
     frame.render_widget(paragraph, rect);

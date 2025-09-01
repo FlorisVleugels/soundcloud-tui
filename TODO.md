@@ -17,7 +17,6 @@
 - Deal with duplicate code in index increase /decrease
 - Deal with duplicate code in ui draw functions (and tracks table)
 - Deal with clone() calls, should be able to remove
-- Move types and implementations for API responses out of api file
 - Make current track / playback implementation better, can maybe merge them
 
 

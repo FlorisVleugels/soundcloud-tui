@@ -1,6 +1,7 @@
 use crate::{
     playback::Playback, 
-    soundcloud::models::{Playlists, Track, Tracks}
+    soundcloud::models::{Playlists, Track, Tracks},
+    ui::constants::LIBRARY_ITEMS
 };
 
 pub struct App {
@@ -67,7 +68,11 @@ impl App {
                 }
             }
             Focus::Library => {
-                self.library_index = self.library_index.saturating_add(1)
+                if self.library_index < LIBRARY_ITEMS.len() - 1 {
+                    self.library_index = self.library_index + 1
+                } else {
+                    self.library_index = 0;
+                }
             }
             Focus::Playlists => {
                 if self.playlists_index < self.liked_playlists.as_ref().unwrap().collection.iter().len() - 1 {
@@ -90,7 +95,11 @@ impl App {
                 }
             }
             Focus::Library => {
-                self.library_index = self.library_index.saturating_sub(1)
+                if self.library_index == 0 {
+                    self.library_index = LIBRARY_ITEMS.len() - 1
+                } else {
+                    self.library_index = self.library_index - 1
+                }
             }
             Focus::Playlists => {
                 if self.playlists_index == 0  {

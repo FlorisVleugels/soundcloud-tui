@@ -19,6 +19,8 @@ pub async fn handle(app: &mut App, client: &Arc<Mutex<Client>>) -> std::io::Resu
                     }
                     KeyCode::Char('j') => app.increase_index(),
                     KeyCode::Char('k') => app.decrease_index(),
+                    KeyCode::Char('l') => app.focus = Focus::Library,
+                    KeyCode::Char('p') => app.focus = Focus::Playlists,
                     KeyCode::Enter => {
                         match app.focus {
                             Focus::Playlists => {
