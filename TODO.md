@@ -18,13 +18,14 @@
 - Deal with duplicate code in ui draw functions (and tracks table)
 - Deal with clone() calls, should be able to remove
 - Make current track / playback implementation better, can maybe merge them
+- Fix library event handler, use Enum for library states
 
 
 ## UI
 - Add scrolling/ paging through the boxes
 - Add highlight color to which pane is focused
 - Add configurable color themes
-- Add tracks body title depending on the playlist
+- Fix body title depending on if its a playlist or library item
 
 ## Audio
 - Get audio streaming working with Symphonia and Rodio

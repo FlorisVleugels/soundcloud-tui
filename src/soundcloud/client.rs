@@ -1,12 +1,12 @@
 use std::error::Error;
 use std::fs::{self, File};
 use std::sync::{Arc, Mutex};
-use std::time::Duration;
 use serde_yaml::Value;
 use serde::{Serialize, Deserialize};
 
 use crate::app::App;
 use crate::playback::Playback;
+use crate::soundcloud::util;
 
 use super::api;
 use super::config::ClientConfig;
@@ -121,10 +121,13 @@ impl Client {
         }
     }
 
-    pub async fn liked_tracks(&self, app: &Arc<Mutex<App>>) {
+    pub async fn liked_tracks(&self, app: &mut App) {
         let response = api::liked_tracks(&self.access_token.0, &self.client).await;
-        if let Ok(tracks) = response {
-            app.lock().unwrap().tracks = Some(tracks)
+        if let Ok(mut tracks) = response {
+            for track in &mut tracks.collection {
+                util::parse_duration(track);
+            }
+            app.tracks = Some(tracks)
         }
     }
 
@@ -133,9 +136,7 @@ impl Client {
         let response = api::playlist_tracks(&self.access_token.0, &self.client, tracks_url).await;
         if let Ok(mut tracks) = response {
             for track in &mut tracks.collection {
-                let seconds = Duration::from_millis(track.duration.into())
-                    .as_secs();
-                track.duration_str = Some(format!("{}:{:02}", (seconds / 60), (seconds % 60)));
+                util::parse_duration(track);
             }
             app.tracks = Some(tracks)
         }
