@@ -147,9 +147,7 @@ impl Client {
             let track_urn = &current_track.urn[..];
             let response = api::streams(&self.access_token.0, &self.client, track_urn).await;
             if let Ok(streams) = response {
-                if let Ok(playback) = Playback::init(streams) {
-                    app.playback = Some(playback);
-                }
+                app.playback = Some(Playback::init(streams))
             }
         }
     }
