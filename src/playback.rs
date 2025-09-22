@@ -1,4 +1,5 @@
 use std::{collections::VecDeque, io::Read};
+use std::sync::{Arc, Mutex};
 
 use rodio::{OutputStreamBuilder, Sink, Source};
 use symphonia::core::{
@@ -12,7 +13,6 @@ use symphonia::core::{
 };
 use tokio::sync::mpsc;
 use tokio_stream::StreamExt;
-use tokio_util::bytes::Bytes;
 
 use crate::soundcloud::models::Streams;
 
@@ -37,9 +37,8 @@ struct AudioSource {
     sample_rate: u32,
 }
 
-struct StreamReader<S> {
-    stream: S,
-    buffer: VecDeque<u8>,
+struct StreamBuffer {
+    buffer: Arc<Mutex<VecDeque<u8>>>,
 }
 
 impl Iterator for AudioSource {
@@ -77,36 +76,24 @@ impl Source for AudioSource {
     }
 }
 
-impl<S> Read for StreamReader<S> 
-where
-    S: tokio_stream::Stream<Item = Result<Bytes, reqwest::Error>> + Unpin
-{
+impl Read for StreamBuffer { 
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         let mut total_copied = 0;
         while total_copied < buf.len() {
-            if let Some(byte) = self.buffer.pop_front() {
+            if let Some(byte) = self.buffer.lock().unwrap().pop_front() {
                 buf[total_copied] = byte;
                 total_copied += 1;
-            } else {
-                let chunk = tokio::task::spawn_blocking(move || {
-                    self.stream.next()
-                })
-                match chunk {
-                }
+                println!("I am blocking and reading")
             }
         }
         Ok(total_copied)
     }
 }
 
-impl<S> StreamReader<S> 
-where 
-    S: tokio_stream::Stream<Item = Result<Bytes, reqwest::Error>>
-{
-    fn new(stream: S) -> Self {
+impl StreamBuffer {
+    fn new() -> Self {
         Self {
-            stream,
-            buffer: VecDeque::new(),
+            buffer: Arc::new(Mutex::new(VecDeque::new())),
         }
     }  
 }
@@ -122,12 +109,21 @@ impl Playback {
     }
 
     pub async fn stream(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-        let bytes_stream = reqwest::get(&self.streams.http_mp3_128_url[..]).await?.bytes_stream();
-        let stream_reader = StreamReader::new(bytes_stream);
-        stream_reader.buffer.clone()
+        let stream_buffer = StreamBuffer::new();
+        let buffer = stream_buffer.buffer.clone();
+
+        let mut bytes_stream = reqwest::get(&self.streams.http_mp3_128_url[..]).await?.bytes_stream();
+        let stream_handle = tokio::spawn(async move {
+            while let Some(chunk) = bytes_stream.next().await {
+                let bytes = chunk.unwrap();
+                let mut buf = buffer.lock().unwrap();
+                buf.extend(bytes);
+                println!("I am blocking and writing")
+            }
+        });
 
         let (tx, rx) = mpsc::channel(100);
-        let handle = tokio::spawn(async move {
+        let decoder_handle = tokio::spawn(async move {
             let mut hint = Hint::new();
             hint.with_extension("mp3");
 
@@ -139,8 +135,7 @@ impl Playback {
             };
             let dec_opts: DecoderOptions = Default::default();
 
-            let mut samples: Vec<f32> = Vec::new();
-            let src = ReadOnlySource::new(stream_reader);
+            let src = ReadOnlySource::new(stream_buffer);
             let mss = MediaSourceStream::new(Box::new(src), Default::default());
 
             let probed = symphonia::default::get_probe().format(&hint, mss, &fmt_opts, &meta_opts)
@@ -172,17 +167,14 @@ impl Playback {
 
                 match decoder.decode(&packet) {
                     Ok(decoded) => {
-                        match decoded {
-                            AudioBufferRef::F32(buf) => {
-                                let frames = buf.frames();
-                                for frame in 0..frames {
-                                    for channel in 0..2 {
-                                        let sample = buf.chan(channel)[frame];
-                                        samples.push(sample);
-                                    }
+                        if let AudioBufferRef::F32(buf) = decoded {
+                            let mut samples = Vec::with_capacity(buf.frames() * buf.spec().channels.count());
+                            for frame in 0..buf.frames() {
+                                for channel in 0..buf.spec().channels.count() {
+                                    samples.push(buf.chan(channel)[frame]);
                                 }
                             }
-                            _ => unimplemented!(),
+                            let _ = tx.send(samples).await;
                         }
                     }
                     Err(Error::IoError(_)) => continue,
@@ -190,7 +182,6 @@ impl Playback {
                     Err(_) => break,
                 }
             }
-            let _ = tx.send(samples).await;
         });
 
         // Rodio audio streaming
@@ -201,21 +192,24 @@ impl Playback {
         sink.append(source);
         self.sink = Some(sink);
 
-        let _ = handle.await;
+        let (_, _) = tokio::join!(
+            stream_handle,
+            decoder_handle
+        );
 
         Ok(())
     }
 
     pub fn toggle(&self) {
-        //sink.pause()
-        //sink.play()
+        //self.sink.unwrap().pause();
+        //self.sink.unwrap().play();
     }
 
-    pub fn increase() {
-        //sink.set_volume()
+    pub fn increase(&self) {
+        //self.sink.unwrap().set_volume();
     }
 
-    pub fn decrease() {
-        //sink.set_volume()
+    pub fn decrease(&self) {
+        //self.sink.unwrap().set_volume();
     }
 }
