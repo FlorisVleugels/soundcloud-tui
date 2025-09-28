@@ -83,7 +83,6 @@ impl Read for StreamBuffer {
             if let Some(byte) = self.buffer.lock().unwrap().pop_front() {
                 buf[total_copied] = byte;
                 total_copied += 1;
-                println!("I am blocking and reading")
             }
         }
         Ok(total_copied)
@@ -110,7 +109,7 @@ impl Playback {
 
     pub async fn stream(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         let stream_buffer = StreamBuffer::new();
-        let buffer = stream_buffer.buffer.clone();
+        let buffer = Arc::clone(&stream_buffer.buffer);
 
         let mut bytes_stream = reqwest::get(&self.streams.http_mp3_128_url[..]).await?.bytes_stream();
         let stream_handle = tokio::spawn(async move {
@@ -118,7 +117,6 @@ impl Playback {
                 let bytes = chunk.unwrap();
                 let mut buf = buffer.lock().unwrap();
                 buf.extend(bytes);
-                println!("I am blocking and writing")
             }
         });
 
