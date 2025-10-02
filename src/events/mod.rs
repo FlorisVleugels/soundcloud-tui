@@ -21,6 +21,9 @@ pub async fn handle(app: &mut App, client: &Arc<Mutex<Client>>) -> std::io::Resu
                     KeyCode::Char('k') => app.decrease_index(),
                     KeyCode::Char('l') => app.focus = Focus::Library,
                     KeyCode::Char('p') => app.focus = Focus::Playlists,
+                    KeyCode::Char(' ') => app.toggle_playback(),
+                    KeyCode::Char('+') => app.volume_up(),
+                    KeyCode::Char('-') => app.volume_down(),
                     KeyCode::Enter => {
                         match app.focus {
                             Focus::Playlists => {
@@ -39,7 +42,7 @@ pub async fn handle(app: &mut App, client: &Arc<Mutex<Client>>) -> std::io::Resu
                                 app.focus = Focus::Status;
                                 app.playback.as_mut().unwrap().stream().await;
                             }
-                            _ => {}
+                            Focus::Status => () //Open cava like plot in main panel
                         }
                     }
                     KeyCode::Esc => {

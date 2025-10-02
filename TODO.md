@@ -28,10 +28,8 @@
 - Fix body title depending on if its a playlist or library item
 
 ## Audio
-- Get audio streaming working with Symphonia and Rodio
-    1. make get request and stream the bytes
-    2. mp3 decode the stream
-    3. append the stream to the rodio sink
+- Drop stream handle when playing a new track
+- Dont show warning messages from Rodio over tui
 - Improve error handling in playback.rs, shouldnt crash the app if something happens
 
 ## Bugs?

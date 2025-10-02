@@ -1,7 +1,7 @@
 use std::{collections::VecDeque, io::Read};
 use std::sync::{Arc, Mutex};
 
-use rodio::{OutputStreamBuilder, Sink, Source};
+use rodio::{OutputStream, OutputStreamBuilder, Sink, Source};
 use symphonia::core::{
     audio::{AudioBufferRef, Signal}, 
     codecs::{DecoderOptions, CODEC_TYPE_NULL}, 
@@ -11,16 +11,24 @@ use symphonia::core::{
     meta::MetadataOptions, 
     probe::Hint
 };
-use tokio::sync::mpsc;
+use tokio::{
+    sync::mpsc,
+    task::JoinHandle
+};
 use tokio_stream::StreamExt;
 
 use crate::soundcloud::models::Streams;
+
+const MAX_VOLUME: f32 = 1.0;
+const VOLUME_INTERVAL: f32 = 0.1;
 
 pub struct Playback {
     pub streams: Streams,
     pub status: Status,
     pub position: u32,
-    pub sink: Option<Sink>
+    pub sink: Option<Sink>,
+    pub _output: Option<OutputStream>,
+    pub handle: Option<JoinHandle<()>>,
 }
 
 pub enum Status {
@@ -104,6 +112,8 @@ impl Playback {
             status: Status::Available,
             position: 0,
             sink: None,
+            _output: None,
+            handle: None,
         }
     }
 
@@ -112,7 +122,7 @@ impl Playback {
         let buffer = Arc::clone(&stream_buffer.buffer);
 
         let mut bytes_stream = reqwest::get(&self.streams.http_mp3_128_url[..]).await?.bytes_stream();
-        let stream_handle = tokio::spawn(async move {
+        let network_handle = tokio::spawn(async move {
             while let Some(chunk) = bytes_stream.next().await {
                 let bytes = chunk.unwrap();
                 let mut buf = buffer.lock().unwrap();
@@ -184,30 +194,50 @@ impl Playback {
 
         // Rodio audio streaming
         let output_stream = OutputStreamBuilder::open_default_stream()?;
-        let sink = rodio::Sink::connect_new(&output_stream.mixer());
+        let sink = rodio::Sink::connect_new(output_stream.mixer());
         let deque: VecDeque<f32> = VecDeque::new();
         let source = AudioSource { rx, buffer: deque, channels: 2, sample_rate: 44100 };
         sink.append(source);
         self.sink = Some(sink);
+        self._output = Some(output_stream);
 
-        let (_, _) = tokio::join!(
-            stream_handle,
-            decoder_handle
-        );
+        let handle = tokio::spawn( async move {
+            let _ = tokio::join!(
+                network_handle,
+                decoder_handle
+            );
+        });
+        self.handle = Some(handle);
+        self.status = Status::Playing;
 
         Ok(())
     }
 
-    pub fn toggle(&self) {
-        //self.sink.unwrap().pause();
-        //self.sink.unwrap().play();
+    pub fn toggle(&mut self) {
+        match self.status {
+            Status::Playing => {
+                self.sink.as_ref().unwrap().pause();
+                self.status = Status::Paused
+            }
+            Status::Paused => {
+                self.sink.as_ref().unwrap().play();
+                self.status = Status::Playing;
+            }
+            _ => (),
+        }
     }
 
-    pub fn increase(&self) {
-        //self.sink.unwrap().set_volume();
+    pub fn increase(&self, volume: &mut f32) {
+        if *volume < MAX_VOLUME {
+            *volume = *volume + VOLUME_INTERVAL;
+            self.sink.as_ref().unwrap().set_volume(*volume);
+        }
     }
 
-    pub fn decrease(&self) {
-        //self.sink.unwrap().set_volume();
+    pub fn decrease(&self, volume: &mut f32) {
+        if *volume > 0.00 {
+            *volume = *volume - VOLUME_INTERVAL;
+            self.sink.as_ref().unwrap().set_volume(*volume);
+        }
     }
 }

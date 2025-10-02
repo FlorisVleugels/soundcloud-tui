@@ -62,7 +62,11 @@ fn draw_status_bar(frame: &mut Frame, rect: Rect, app: &mut App) {
                     Focus::Status => Color::Yellow,
                     _ => Color::default()
                 })
-            .title(format!("{} - {}", &track.title[..], &track.user.username[..])), rect);
+            //Playing (archlinux | Shuffle: On | Repeat: Off | Volume: 100%)
+            //Title
+            //Artist
+            //Duration Bar 2:44/3:46 (-2:00)
+            .title(format!("{} - {} - {}%", &track.title[..], &track.user.username[..], app.volume*100.0)), rect);
     } else {
         frame.render_widget(Block::bordered(), rect);
     }

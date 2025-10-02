@@ -1,3 +1,4 @@
 /target
 .env
 soundcloud_api
+debug.log

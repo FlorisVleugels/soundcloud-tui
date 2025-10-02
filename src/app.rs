@@ -10,7 +10,7 @@ pub struct App {
     pub focus: Focus,
     pub body: Body,
     pub playback: Option<Playback>,
-    pub volume: u8,
+    pub volume: f32,
     pub show_help: bool,
     pub liked_playlists: Option<Playlists>,
     pub tracks: Option<Tracks>,
@@ -46,7 +46,7 @@ impl App {
             focus: Focus::Playlists,
             body: Body::Welcome,
             playback: None,
-            volume: 100,
+            volume: 1.00,
             show_help: false,
             liked_playlists: None,
             tracks: None,
@@ -173,5 +173,23 @@ impl App {
 
     fn clamp_cursor(&self, new_cursor_pos: usize) -> usize {
         new_cursor_pos.clamp(0, self.input.chars().count())
+    }
+
+    pub fn toggle_playback(&mut self) {
+        if let Some(playback) = self.playback.as_mut() {
+            playback.toggle();
+        };
+    }
+
+    pub fn volume_up(&mut self) {
+        if let Some(playback) = self.playback.as_mut() {
+            playback.increase(&mut self.volume);
+        };
+    }
+
+    pub fn volume_down(&mut self) {
+        if let Some(playback) = self.playback.as_mut() {
+            playback.decrease(&mut self.volume);
+        };
     }
 }
