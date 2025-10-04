@@ -49,6 +49,17 @@ struct StreamBuffer {
     buffer: Arc<Mutex<VecDeque<u8>>>,
 }
 
+impl std::fmt::Display for Status {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Status::Playing => write!(f, "Playing"),
+            Status::Paused => write!(f, "Paused"),
+            Status::Available => write!(f, "Available"),
+            Status::Unavailable => write!(f, "Unavailable"),
+        }
+    }
+}
+
 impl Iterator for AudioSource {
     type Item = f32;
     fn next(&mut self) -> Option<Self::Item> {
@@ -194,6 +205,7 @@ impl Playback {
 
         // Rodio audio streaming
         let output_stream = OutputStreamBuilder::open_default_stream()?;
+        //output_stream.log_on_drop(false);
         let sink = rodio::Sink::connect_new(output_stream.mixer());
         let deque: VecDeque<f32> = VecDeque::new();
         let source = AudioSource { rx, buffer: deque, channels: 2, sample_rate: 44100 };
@@ -239,5 +251,9 @@ impl Playback {
             *volume = *volume - VOLUME_INTERVAL;
             self.sink.as_ref().unwrap().set_volume(*volume);
         }
+    }
+
+    pub fn position(&self) -> u64 {
+        self.sink.as_ref().unwrap().get_pos().as_secs()
     }
 }

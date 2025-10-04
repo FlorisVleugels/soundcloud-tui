@@ -1,10 +1,12 @@
+use core::f64;
 use std::fs;
 
+use crossterm::cursor::position;
 use ratatui::{
     layout::{Layout, Position, Rect},
     style::{Color, Style, Stylize},
     text::{Line, Span, Text},
-    widgets::{Bar, BarChart, BarGroup, Block, Borders, Clear, Padding, Paragraph, Row, Table, Wrap},
+    widgets::{Bar, BarChart, BarGroup, Block, Borders, Clear, Gauge, Padding, Paragraph, Row, Table, Wrap},
     Frame,
 };
 
@@ -55,20 +57,46 @@ fn draw_top_bar(frame: &mut Frame, app: &mut App, rect: Rect) {
 }
 
 fn draw_status_bar(frame: &mut Frame, rect: Rect, app: &mut App) {
+    let display_volume: f64 = (app.volume*100.0).into();
     if let Some(track) = &app.current_track {
-        frame.render_widget(
-            Block::bordered()
+        let layout = Layout::vertical(STATUS_BAR_VERTICAL);
+        let [_, gauge_area] = layout.areas(rect);
+
+        let pos = app.playback.as_ref().unwrap().position();
+        let label = Span::from(
+            format!("{:.1}/{} (-2:00)", pos, &track.duration_str.as_ref().unwrap()[..])
+        );
+        let title = format!(
+                    "{} (archlinux | Shuffle: Off | Repeat: Off | Volume: {:.0}%)", 
+                    app.playback.as_ref().unwrap().status, 
+                    display_volume,
+        );
+        let text = vec![
+            Line::from(&track.title[..]),
+            Line::from(&track.user.username[..]),
+        ];
+
+        let paragraph = Paragraph::new(text)
+            .block(Block::bordered()
             .border_style(match app.focus {
                     Focus::Status => Color::Yellow,
                     _ => Color::default()
                 })
-            //Playing (archlinux | Shuffle: On | Repeat: Off | Volume: 100%)
-            //Title
-            //Artist
-            //Duration Bar 2:44/3:46 (-2:00)
-            .title(format!("{} - {} - {}%", &track.title[..], &track.user.username[..], app.volume*100.0)), rect);
+            .title(title));
+
+        let gague = Gauge::default()
+            .label(label)
+            .gauge_style(Color::Yellow)
+            .ratio(pos as f64 / track.duration as f64);
+
+        frame.render_widget(paragraph, rect);
+        frame.render_widget(gague, gauge_area);
     } else {
-        frame.render_widget(Block::bordered(), rect);
+        frame.render_widget(Block::bordered()
+            .title(format!(
+                    " (archlinux | Shuffle: Off | Repeat: Off | Volume: {:.0}%)", 
+                    display_volume,
+            )), rect);
     }
 }
 

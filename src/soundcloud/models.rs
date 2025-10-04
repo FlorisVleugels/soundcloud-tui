@@ -24,7 +24,7 @@ pub struct Playlists {
 #[derive(Deserialize, Debug, Clone)]
 pub struct Track {
     pub title: String,
-    pub duration: u32,
+    pub duration: u64,
     pub duration_str: Option<String>,
     pub user: User,
     pub metadata_artist: Option<String>,

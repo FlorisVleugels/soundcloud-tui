@@ -1,6 +1,7 @@
 # TODO
 
 ## General
+- Improve draw loop polling (only while playing refresh every second)
 - Change clientconfig and is_complete() cus client code is single use
 - Add generic func for deserialize yaml
 - Add anyhow errorhandling throughout, will improve the nesting of if lets cus can use ? and return Anyhow
@@ -13,6 +14,7 @@
 
 
 ## Code
+- Cleanup Status Bar code
 - Apply nested layout code instead of what i have now
 - Deal with duplicate code in index increase /decrease
 - Deal with duplicate code in ui draw functions (and tracks table)

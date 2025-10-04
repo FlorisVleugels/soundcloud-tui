@@ -20,3 +20,5 @@ pub const TRACKS_COLUMN_WIDTHS: [Constraint; 4] = [Constraint::Percentage(40), C
 pub const HELP_WINDOW_CONSTRANTS: [Constraint; 3] = [Constraint::Percentage(10), Constraint::Percentage(80), Constraint::Percentage(10)];
 pub const INNER_HELP_VERTICAL: [Constraint; 4] = [Constraint::Percentage(5), Constraint::Percentage(45), Constraint::Percentage(45), Constraint::Percentage(5)];
 pub const INNER_HELP_HORIZONTAL: [Constraint; 3] = [Constraint::Percentage(5), Constraint::Percentage(90), Constraint::Percentage(5)];
+
+pub const STATUS_BAR_VERTICAL: [Constraint; 2] = [Constraint::Percentage(75), Constraint::Percentage(25)];

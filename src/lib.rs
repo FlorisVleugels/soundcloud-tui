@@ -7,10 +7,12 @@ mod ui;
 
 use std::{
     error::Error, 
-    sync::{Arc, Mutex}
+    sync::{Arc, Mutex}, 
+    time::Duration,
 };
 
 use app::{App, Mode};
+use crossterm::event::poll;
 use soundcloud::{
     client::Client,
     config::ClientConfig
@@ -40,9 +42,11 @@ pub async fn run(terminal: &mut ratatui::DefaultTerminal) -> Result<(), Box<dyn 
 
     loop {
         terminal.draw(|frame| ui::render_app(frame, &mut *app.lock().unwrap()))?;
-        if events::handle(&mut *app.lock().unwrap(), &client).await? {
-            client.lock().unwrap().store_refresh_token();
-            break Ok(());
+        if poll(Duration::from_secs(1))? {
+            if events::handle(&mut *app.lock().unwrap(), &client).await? {
+                client.lock().unwrap().store_refresh_token();
+                break Ok(());
+            }
         }
     }
 }
