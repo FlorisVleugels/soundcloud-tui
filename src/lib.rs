@@ -4,6 +4,7 @@ mod handlers;
 mod playback;
 mod soundcloud;
 mod ui;
+mod util;
 
 use std::{
     error::Error, 

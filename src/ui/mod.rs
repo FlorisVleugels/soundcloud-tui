@@ -1,18 +1,20 @@
 use core::f64;
 use std::fs;
 
-use crossterm::cursor::position;
 use ratatui::{
-    layout::{Layout, Position, Rect},
+    layout::{Layout, Margin, Position, Rect},
     style::{Color, Style, Stylize},
     text::{Line, Span, Text},
-    widgets::{Bar, BarChart, BarGroup, Block, Borders, Clear, Gauge, Padding, Paragraph, Row, Table, Wrap},
+    widgets::{
+        Bar, BarChart, BarGroup, Block, Borders, Clear, 
+        Gauge, Padding, Paragraph, Row, Table, Wrap
+    },
     Frame,
 };
 
 use crate::{
     app::{App, Body, Focus, Mode}, 
-    soundcloud::models::Track
+    soundcloud::models::Track, util::format_duration
 };
 use constants::*;
 
@@ -35,17 +37,17 @@ pub fn auth(frame: &mut Frame) {
 
 pub fn render_app(
     frame: &mut Frame,
-    app: &mut App
+    app: &App
 ) {
     let vertical = Layout::vertical(MAIN_CONSTRAINTS);
     let [title_area, main_area, status_area] = vertical.areas(frame.area());
 
     draw_top_bar(frame, app, title_area);
     draw_body(frame, main_area, app);
-    draw_status_bar(frame, status_area, app);
+    draw_status(frame, status_area, app);
 }
 
-fn draw_top_bar(frame: &mut Frame, app: &mut App, rect: Rect) {
+fn draw_top_bar(frame: &mut Frame, app: &App, rect: Rect) {
     let horizontal_title = Layout::horizontal(TOP_BAR_CONSTRAINTS);
     let [search_area, help_area] = horizontal_title.areas(rect);
 
@@ -56,19 +58,18 @@ fn draw_top_bar(frame: &mut Frame, app: &mut App, rect: Rect) {
     frame.render_widget(paragraph, help_area);
 }
 
-fn draw_status_bar(frame: &mut Frame, rect: Rect, app: &mut App) {
-    let display_volume: f64 = (app.volume*100.0).into();
+fn draw_status(frame: &mut Frame, rect: Rect, app: &App) {
+    let display_volume = app.volume*100.0;
     if let Some(track) = &app.current_track {
         let layout = Layout::vertical(STATUS_BAR_VERTICAL);
-        let [_, gauge_area] = layout.areas(rect);
+        let [_, gauge_area, _] = layout.areas(rect);
+        let gauge_area = gauge_area.inner(Margin::new(1, 0));
 
-        let pos = app.playback.as_ref().unwrap().position();
-        let label = Span::from(
-            format!("{:.1}/{} (-2:00)", pos, &track.duration_str.as_ref().unwrap()[..])
-        );
         let title = format!(
-                    "{} (archlinux | Shuffle: Off | Repeat: Off | Volume: {:.0}%)", 
+                    "{} (archlinux | Shuffle: {} | Repeat: {} | Volume: {:.0}%)", 
                     app.playback.as_ref().unwrap().status, 
+                    if app.shuffle { "On" } else { "Off" },
+                    if app.repeat { "On" } else { "Off" },
                     display_volume,
         );
         let text = vec![
@@ -84,26 +85,46 @@ fn draw_status_bar(frame: &mut Frame, rect: Rect, app: &mut App) {
                 })
             .title(title));
 
-        let gague = Gauge::default()
-            .label(label)
-            .gauge_style(Color::Yellow)
-            .ratio(pos as f64 / track.duration as f64);
-
         frame.render_widget(paragraph, rect);
-        frame.render_widget(gague, gauge_area);
+        draw_progress_bar(frame, app, track, gauge_area);
     } else {
         frame.render_widget(Block::bordered()
             .title(format!(
-                    " (archlinux | Shuffle: Off | Repeat: Off | Volume: {:.0}%)", 
+                    "(archlinux | Shuffle: {} | Repeat: {} | Volume: {:.0}%)", 
+                    if app.shuffle { "On" } else { "Off" },
+                    if app.repeat { "On" } else { "Off" },
                     display_volume,
             )), rect);
     }
 }
 
+fn draw_progress_bar(
+    frame: &mut Frame,
+    app: &App,
+    track: &Track,
+    rect: Rect,
+) {
+    let pos = app.playback.as_ref().unwrap().position();
+    let diff = (pos as f64 - track.duration as f64) * - 1.0;
+    let label = Span::from(
+        format!("{}/{} (-{})", 
+            format_duration(pos),
+            &track.duration_str.as_ref().unwrap()[..],
+            format_duration(diff as u64)
+        )
+    );
+    let progress_bar = Gauge::default()
+        .label(label)
+        .bg(Color::Rgb(33, 30, 20))
+        .gauge_style(Color::Yellow)
+        .ratio(pos as f64 / track.duration as f64);
+    frame.render_widget(progress_bar, rect);
+}
+
 fn draw_body(
     frame: &mut Frame,
     rect: Rect,
-    app: &mut App,
+    app: &App,
 ) {
     let horizontal_body = Layout::horizontal(BODY_CONSTRAINTS);
     let [body_area, bar_area] = horizontal_body.areas(rect);
@@ -122,7 +143,7 @@ fn draw_body(
 fn draw_main_panel(
     frame: &mut Frame,
     rect: Rect,
-    app: &mut App,
+    app: &App,
 ) {
     match app.body {
         Body::Welcome => draw_welcome(frame, rect),
@@ -153,7 +174,7 @@ fn draw_welcome(
 fn draw_playlists(
     frame: &mut Frame,
     rect: Rect,
-    app: &mut App
+    app: &App
 ) {
     if let Some(playlists) = &app.liked_playlists {
         let mut titles = vec![];
@@ -188,7 +209,7 @@ fn draw_playlists(
 fn draw_tracks(
     frame: &mut Frame,
     rect: Rect,
-    app: &mut App
+    app: &App
 ) {
     if let Some(tracks) = &app.tracks {
         let header = Row::new(vec!["Title", "Publisher", "Genre", "Duration"])
@@ -225,7 +246,7 @@ fn draw_tracks(
 fn draw_library(
     frame: &mut Frame,
     rect: Rect,
-    app: &mut App
+    app: &App
 ) {
     let mut lines = vec![];
     for (i, &item) in LIBRARY_ITEMS.iter().enumerate() {
@@ -252,7 +273,7 @@ fn draw_library(
     frame.render_widget(paragraph, rect);
 }
 
-fn draw_search(frame: &mut Frame, app: &mut App, rect: Rect) {
+fn draw_search(frame: &mut Frame, app: &App, rect: Rect) {
     let input = Paragraph::new(app.input.as_str())
         .style(match app.mode {
             Mode::Editing => Style::default().fg(Color::Yellow),

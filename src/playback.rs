@@ -204,8 +204,8 @@ impl Playback {
         });
 
         // Rodio audio streaming
-        let output_stream = OutputStreamBuilder::open_default_stream()?;
-        //output_stream.log_on_drop(false);
+        let mut output_stream = OutputStreamBuilder::open_default_stream()?;
+        output_stream.log_on_drop(false);
         let sink = rodio::Sink::connect_new(output_stream.mixer());
         let deque: VecDeque<f32> = VecDeque::new();
         let source = AudioSource { rx, buffer: deque, channels: 2, sample_rate: 44100 };

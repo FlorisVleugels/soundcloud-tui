@@ -21,4 +21,4 @@ pub const HELP_WINDOW_CONSTRANTS: [Constraint; 3] = [Constraint::Percentage(10),
 pub const INNER_HELP_VERTICAL: [Constraint; 4] = [Constraint::Percentage(5), Constraint::Percentage(45), Constraint::Percentage(45), Constraint::Percentage(5)];
 pub const INNER_HELP_HORIZONTAL: [Constraint; 3] = [Constraint::Percentage(5), Constraint::Percentage(90), Constraint::Percentage(5)];
 
-pub const STATUS_BAR_VERTICAL: [Constraint; 2] = [Constraint::Percentage(75), Constraint::Percentage(25)];
+pub const STATUS_BAR_VERTICAL: [Constraint; 3] = [Constraint::Percentage(70), Constraint::Percentage(20), Constraint::Percentage(10)];
