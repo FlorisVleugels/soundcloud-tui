@@ -38,6 +38,7 @@ pub enum Focus {
 pub enum Body {
     Welcome,
     Tracks, 
+    Waveform,
 }
 
 impl App {

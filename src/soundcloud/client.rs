@@ -125,7 +125,7 @@ impl Client {
         let response = api::liked_tracks(&self.access_token.0, &self.client).await;
         if let Ok(mut tracks) = response {
             for track in &mut tracks.collection {
-                util::parse_duration(track);
+                util::convert_duration(track);
             }
             app.tracks = Some(tracks)
         }
@@ -136,7 +136,7 @@ impl Client {
         let response = api::playlist_tracks(&self.access_token.0, &self.client, tracks_url).await;
         if let Ok(mut tracks) = response {
             for track in &mut tracks.collection {
-                util::parse_duration(track);
+                util::convert_duration(track);
             }
             app.tracks = Some(tracks)
         }
@@ -147,7 +147,7 @@ impl Client {
             let track_urn = &current_track.urn[..];
             let response = api::streams(&self.access_token.0, &self.client, track_urn).await;
             if let Ok(streams) = response {
-                app.playback = Some(Playback::init(streams))
+                app.playback = Some(Playback::init(streams));
             }
         }
     }

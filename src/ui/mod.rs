@@ -148,6 +148,7 @@ fn draw_main_panel(
     match app.body {
         Body::Welcome => draw_welcome(frame, rect),
         Body::Tracks => draw_tracks(frame, rect, app),
+        Body::Waveform => todo!(),
     }
 }
 
