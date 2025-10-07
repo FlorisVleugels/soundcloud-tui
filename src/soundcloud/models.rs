@@ -37,7 +37,7 @@ pub struct Track {
 #[derive(Deserialize, Debug)]
 pub struct Tracks {
     pub collection: Vec<Track>,
-    pub next_href: String,
+    pub next_href: Option<String>,
 }
 
 #[derive(Deserialize, Debug, Clone)]

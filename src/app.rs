@@ -16,6 +16,7 @@ pub struct App {
     pub show_help: bool,
     pub liked_playlists: Option<Playlists>,
     pub tracks: Option<Tracks>,
+    recents: Option<Tracks>,
     pub current_track: Option<Track>,
     pub search_index: usize,
     pub playlists_index: usize,
@@ -55,6 +56,7 @@ impl App {
             show_help: false,
             liked_playlists: None,
             tracks: None,
+            recents: None,
             current_track: None,
             search_index: 0,
             playlists_index: 0,
@@ -118,9 +120,7 @@ impl App {
     }
 
     fn increase(i: &mut usize, length: &usize) {
-        if *i < length - 1 {
-        } else {
-        }
+        todo!()
     }
 
     pub fn title(&self) -> &str {
@@ -131,10 +131,31 @@ impl App {
         self.show_help = !self.show_help
     }
 
-    pub fn play_track(&mut self) {
+    pub fn set_track(&mut self) {
         if let Some(tracks) = &self.tracks {
-            self.current_track = Some(tracks.collection.iter().nth(self.body_index).unwrap().clone());
+            let track = tracks.collection.iter().nth(self.body_index).unwrap().clone();
+            self.update_recents(track.clone());
+            self.current_track = Some(track);
         }
+    }
+
+    fn update_recents(&mut self, track: Track) {
+        match &mut self.recents {
+            Some(tracks) => {
+                tracks.collection.push(track);
+            },
+            None => {
+                self.recents = Some( Tracks {
+                    collection: vec![track],
+                    next_href: None 
+                })
+            }
+        }
+    }
+    
+    pub async fn play_track(&mut self) {
+        self.focus = Focus::Status;
+        self.playback.as_mut().unwrap().stream().await;
     }
 
     pub fn move_cursor_left(&mut self) {
@@ -178,6 +199,22 @@ impl App {
 
     fn clamp_cursor(&self, new_cursor_pos: usize) -> usize {
         new_cursor_pos.clamp(0, self.input.chars().count())
+    }
+
+    pub fn reset_index() {
+        todo!()
+    }
+    
+    pub fn set_recents(&mut self) {
+        self.tracks = match &self.recents {
+            Some(tracks) => Some(
+                Tracks {
+                    collection: tracks.collection.clone(),
+                    next_href: None
+                }
+            ),
+            None => None
+        };
     }
 
     pub fn toggle_playback(&mut self) {

@@ -3,12 +3,13 @@ use std::sync::{Arc, Mutex};
 use crossterm::event::{self, Event, KeyCode, KeyEventKind};
 
 use crate::app::{App, Body, Focus, Mode};
+use crate::handlers;
 use crate::soundcloud::client::Client;
 
 pub async fn handle(app: &mut App, client: &Arc<Mutex<Client>>) -> std::io::Result<bool> {
-    match app.mode {
-        Mode::Normal => { 
-            if let Event::Key(key) = event::read()? {
+    if let Event::Key(key) = event::read()? {
+        match app.mode {
+            Mode::Normal => { 
                 match key.code {
                     KeyCode::Char('/') => app.mode = Mode::Editing,
                     KeyCode::Char('j') => app.increase_index(),
@@ -18,27 +19,7 @@ pub async fn handle(app: &mut App, client: &Arc<Mutex<Client>>) -> std::io::Resu
                     KeyCode::Char(' ') => app.toggle_playback(),
                     KeyCode::Char('+') => app.volume_up(),
                     KeyCode::Char('-') => app.volume_down(),
-                    KeyCode::Enter => {
-                        match app.focus {
-                            Focus::Playlists => {
-                                client.lock().unwrap().playlist_tracks(app).await;
-                                app.body = Body::Tracks;
-                                app.focus = Focus::Body;
-                            }
-                            Focus::Library => {
-                                client.lock().unwrap().liked_tracks(app).await;
-                                app.body = Body::Tracks;
-                                app.focus = Focus::Body;
-                            }
-                            Focus::Body => {
-                                app.play_track();
-                                client.lock().unwrap().streams(app).await;
-                                app.focus = Focus::Status;
-                                app.playback.as_mut().unwrap().stream().await;
-                            }
-                            Focus::Status => () //Open cava like plot in main panel
-                        }
-                    }
+                    KeyCode::Enter => handlers::enter(app, client).await,
                     KeyCode::Esc => {
                         app.body = Body::Welcome;
                         app.focus = Focus::Playlists;
@@ -47,11 +28,8 @@ pub async fn handle(app: &mut App, client: &Arc<Mutex<Client>>) -> std::io::Resu
                     KeyCode::Char('q') => return Ok(true),
                     _ => {}
                 }
-            }
-            Ok(false)
-        },
-        Mode::Editing => {
-            if let Event::Key(key) = event::read()? {
+            },
+            Mode::Editing => {
                 if key.kind == KeyEventKind::Press { 
                     match key.code {
                         KeyCode::Enter => {}
@@ -61,9 +39,10 @@ pub async fn handle(app: &mut App, client: &Arc<Mutex<Client>>) -> std::io::Resu
                         KeyCode::Right => app.move_cursor_right(),
                         KeyCode::Esc => app.mode = Mode::Normal,
                         _ => {}
-                    }}
+                    }
+                }
             }
-            Ok(false)
-        }
+        };
     }
+    Ok(false)
 }

@@ -12,6 +12,8 @@
 - Improve event handler code
 - Add error page for main panel when couldnt load something
 
+## Performance
+- Separate draw loop from io (not an issue yet, might never be)
 
 ## Code
 - Cleanup Status Bar code
@@ -36,3 +38,4 @@
 
 ## Bugs?
 - Some fetch tracks doesnt work prolly cus json decode not working sometimes
+- Did performance drop ater 'recent tracks' commit??
