@@ -61,8 +61,25 @@ pub async fn _search_playlists() {
     
 }
 
-pub async fn _search_tracks() {
-    
+pub async fn search_tracks(
+    access_token: &String,
+    client: &reqwest::Client,
+    input: &String
+) -> Result<Tracks, Error> {
+    let limit = "limit=40";
+    let access = "access=playable";
+    let query = &input[..];
+    let url = format!("{}tracks?q={}&{}&{}&linked_partitioning=true", BASE_URL, query, limit, access);
+    let response = client
+        .get(url)
+        .header("accept", "application/json; charset=utf-8")
+        .header("Authorization", format!("OAuth {}", access_token))
+        .send()
+        .await?
+        .json::<Tracks>()
+        .await?;
+
+    Ok(response)
 }
 
 pub async fn liked_playlists(

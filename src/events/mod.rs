@@ -32,7 +32,7 @@ pub async fn handle(app: &mut App, client: &Arc<Mutex<Client>>) -> std::io::Resu
             Mode::Editing => {
                 if key.kind == KeyEventKind::Press { 
                     match key.code {
-                        KeyCode::Enter => {}
+                        KeyCode::Enter => handlers::search(app, client).await,
                         KeyCode::Char(to_insert) => app.enter_char(to_insert),
                         KeyCode::Backspace => app.delete_char(),
                         KeyCode::Left => app.move_cursor_left(),

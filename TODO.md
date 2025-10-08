@@ -8,11 +8,12 @@
 - Clean up auth module
 - Implement how to call the client api calls in a better way, and improve clientconfig
 - Improve state management in app struct
-- Add handlers for calling the client api methods from key presses
-- Improve event handler code
 - Add error page for main panel when couldnt load something
+- Improve search functionality to cover other query params
 
 ## Performance
+- Close playback after track finishes or next track
+- Send multiple chunks at once to reduce cycles
 - Separate draw loop from io (not an issue yet, might never be)
 
 ## Code
@@ -23,7 +24,6 @@
 - Deal with clone() calls, should be able to remove
 - Make current track / playback implementation better, can maybe merge them
 - Fix library event handler, use Enum for library states
-
 
 ## UI
 - Add scrolling/ paging through the boxes

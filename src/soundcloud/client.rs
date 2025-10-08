@@ -103,15 +103,21 @@ impl Client {
     }
 
     pub async fn _search_playlists(&self) {
-        
+        todo!()
     }
 
-    pub async fn _search_tracks(&self) {
-        
+    pub async fn search_tracks(&self, app: &mut App) {
+        let response = api::search_tracks(&self.access_token.0, &self.client, &app.input).await;
+        if let Ok(mut tracks) = response {
+            for track in &mut tracks.collection {
+                util::convert_duration(track);
+            }
+            app.tracks = Some(tracks)
+        }
     }
 
     pub async fn _search_users(&self) {
-
+        todo!()
     }
 
     pub async fn liked_playlists(&self, app: &Arc<Mutex<App>>) {

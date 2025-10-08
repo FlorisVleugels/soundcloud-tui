@@ -1,6 +1,6 @@
 use std::sync::{Arc, Mutex};
 
-use crate::app::{App, Body, Focus};
+use crate::app::{App, Body, Focus, Mode};
 use crate::soundcloud::client::Client;
 
 
@@ -17,6 +17,13 @@ pub async fn enter(app: &mut App, client: &Arc<Mutex<Client>>) {
         Focus::Body => play_track(app, client).await,
         Focus::Status => unimplemented!() //Open cava like plot in main panel
     }
+}
+
+pub async fn search(app: &mut App, client: &Arc<Mutex<Client>>) {
+    client.lock().unwrap().search_tracks(app).await;
+    app.body = Body::Tracks;
+    app.focus = Focus::Body;
+    app.mode = Mode::Normal;
 }
 
 async fn open_playlist(app: &mut App, client: &Arc<Mutex<Client>>) {
