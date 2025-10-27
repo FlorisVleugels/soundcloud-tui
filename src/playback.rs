@@ -132,7 +132,7 @@ impl Playback {
         let stream_buffer = StreamBuffer::new();
         let buffer = Arc::clone(&stream_buffer.buffer);
 
-        let mut bytes_stream = reqwest::get(&self.streams.http_mp3_128_url[..]).await?.bytes_stream();
+        let mut bytes_stream = reqwest::get(&self.streams.http_mp3_128_url).await?.bytes_stream();
         let network_handle = tokio::spawn(async move {
             while let Some(chunk) = bytes_stream.next().await {
                 let bytes = chunk.unwrap();

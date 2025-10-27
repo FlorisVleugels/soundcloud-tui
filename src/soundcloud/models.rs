@@ -56,10 +56,10 @@ pub struct Streams {
 impl Track {
     pub fn table_row_data(&self) -> Vec<&str> {
         vec![
-            &self.title[..],
-            &self.user.username[..],
-            &self.genre[..],
-            &self.duration_str.as_ref().unwrap()[..],
+            &self.title,
+            &self.user.username,
+            &self.genre,
+            &self.duration_str.as_ref().unwrap(),
         ]
     }
 }

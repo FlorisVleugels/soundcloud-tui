@@ -13,8 +13,8 @@ pub async fn oauth_tokens(
     client: &reqwest::Client,
 ) -> Result<OauthTokens, Error> {
     let mut params = HashMap::new();
-    let verifier = &config.code_verifier.as_ref().unwrap()[..];
-    let code = &config.client_code().unwrap()[..];
+    let verifier = &config.code_verifier.as_ref().unwrap();
+    let code = &config.client_code().unwrap();
     params.insert("grant_type", "authorization_code");
     params.insert("client_id", &config.client_id[..]);
     params.insert("client_secret", &config.client_secret[..]);
@@ -41,9 +41,9 @@ pub async fn refresh(
 ) -> Result<OauthTokens, Error> {
     let mut params = HashMap::new();
     params.insert("grant_type", "refresh_token");
-    params.insert("client_id", &config.client_id[..]);
-    params.insert("client_secret", &config.client_secret[..]);
-    params.insert("refresh_token", &refresh_token[..]);
+    params.insert("client_id", &config.client_id);
+    params.insert("client_secret", &config.client_secret);
+    params.insert("refresh_token", refresh_token);
 
     let response = client
         .post(TOKEN_URL)
@@ -68,7 +68,7 @@ pub async fn search_tracks(
 ) -> Result<Tracks, Error> {
     let limit = "limit=40";
     let access = "access=playable";
-    let query = &input[..];
+    let query = &input;
     let url = format!("{}tracks?q={}&{}&{}&linked_partitioning=true", BASE_URL, query, limit, access);
     let response = client
         .get(url)

@@ -124,7 +124,7 @@ impl App {
     }
 
     pub fn title(&self) -> &str {
-        &self.liked_playlists.as_ref().unwrap().collection.iter().nth(self.playlists_index).unwrap().title[..]
+        &self.liked_playlists.as_ref().unwrap().collection.iter().nth(self.playlists_index).unwrap().title
     }
 
     pub fn toggle_help(&mut self) {

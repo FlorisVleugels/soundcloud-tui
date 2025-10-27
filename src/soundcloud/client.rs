@@ -138,7 +138,7 @@ impl Client {
     }
 
     pub async fn playlist_tracks(&self, app: &mut App) {
-        let tracks_url = &app.liked_playlists.as_ref().unwrap().collection.iter().nth(app.playlists_index).unwrap().tracks_uri[..];
+        let tracks_url = &app.liked_playlists.as_ref().unwrap().collection.iter().nth(app.playlists_index).unwrap().tracks_uri;
         let response = api::playlist_tracks(&self.access_token.0, &self.client, tracks_url).await;
         if let Ok(mut tracks) = response {
             for track in &mut tracks.collection {
@@ -150,7 +150,7 @@ impl Client {
 
     pub async fn streams(&self, app: &mut App) {
         if let Some(current_track) = &app.current_track {
-            let track_urn = &current_track.urn[..];
+            let track_urn = &current_track.urn;
             let response = api::streams(&self.access_token.0, &self.client, track_urn).await;
             if let Ok(streams) = response {
                 app.playback = Some(Playback::init(streams));
@@ -160,7 +160,7 @@ impl Client {
 
     pub async fn _waveform(&self, app: &mut App) {
         if let Some(track) = &mut app.current_track {
-            let response = api::waveform(&self.client, &track.waveform_url[..]).await;
+            let response = api::waveform(&self.client, &track.waveform_url).await;
             if let Ok(waveform) = response {
                 track.waveform = Some(waveform);
             }

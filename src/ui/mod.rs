@@ -109,7 +109,7 @@ fn draw_progress_bar(
     let label = Span::from(
         format!("{}/{} (-{})", 
             format_duration(pos),
-            &track.duration_str.as_ref().unwrap()[..],
+            &track.duration_str.as_ref().unwrap(),
             format_duration(diff as u64)
         )
     );
