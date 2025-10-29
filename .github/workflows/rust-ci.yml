@@ -1,0 +1,36 @@
+name: Rust CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update apt and install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libasound2-dev \
+            pkg-config \
+            libudev-dev \
+            libx11-dev \
+            libxi-dev \
+            libgl1-mesa-dev \
+            libpulse-dev
+
+      - name: Cargo build
+        run: cargo build --verbose
+
+      - name: Cargo test
+        run: cargo test --verbose
+
