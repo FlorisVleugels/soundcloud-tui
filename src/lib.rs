@@ -46,6 +46,9 @@ pub async fn run(terminal: &mut ratatui::DefaultTerminal) -> Result<(), Box<dyn 
         if poll(Duration::from_secs(1))? {
             if events::handle(&mut *app.lock().unwrap(), &client).await? {
                 client.lock().unwrap().store_refresh_token();
+                if let Some(playback) = &mut app.lock().unwrap().playback {
+                    playback.cancel();
+                }
                 break Ok(());
             }
         }

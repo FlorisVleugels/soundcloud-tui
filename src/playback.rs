@@ -16,6 +16,7 @@ use tokio::{
     task::JoinHandle
 };
 use tokio_stream::StreamExt;
+use tokio_util::sync::CancellationToken;
 
 use crate::soundcloud::models::Streams;
 
@@ -23,12 +24,13 @@ const MAX_VOLUME: f32 = 1.0;
 const VOLUME_INTERVAL: f32 = 0.1;
 
 pub struct Playback {
-    pub streams: Streams,
+    streams: Streams,
     pub status: Status,
-    pub position: u32,
-    pub sink: Option<Sink>,
-    pub _output: Option<OutputStream>,
-    pub handle: Option<JoinHandle<()>>,
+    position: u32,
+    sink: Option<Sink>,
+    _output: Option<OutputStream>,
+    handle: Option<JoinHandle<()>>,
+    token: CancellationToken,
 }
 
 pub enum Status {
@@ -66,12 +68,12 @@ impl Iterator for AudioSource {
         match self.buffer.pop_front() {
             Some(sample) => Some(sample),
             None => {
-                if let Some(samples) = self.rx.blocking_recv() {
-                    for sample in samples {
-                        self.buffer.push_back(sample);
-                    }
+                if let Ok(samples) = self.rx.try_recv() {
+                    self.buffer.extend(samples);
+                    self.buffer.pop_front()
+                } else {
+                    None
                 }
-                self.buffer.pop_front()
             }
         }
     }
@@ -125,6 +127,7 @@ impl Playback {
             sink: None,
             _output: None,
             handle: None,
+            token: CancellationToken::new(),
         }
     }
 
@@ -133,73 +136,85 @@ impl Playback {
         let buffer = Arc::clone(&stream_buffer.buffer);
 
         let mut bytes_stream = reqwest::get(&self.streams.http_mp3_128_url).await?.bytes_stream();
+        let network_token = self.token.clone();
         let network_handle = tokio::spawn(async move {
-            while let Some(chunk) = bytes_stream.next().await {
-                let bytes = chunk.unwrap();
-                let mut buf = buffer.lock().unwrap();
-                buf.extend(bytes);
+            tokio::select! {
+                _ = network_token.cancelled() => {},
+                _ = async { 
+                    while let Some(chunk) = bytes_stream.next().await {
+                        let bytes = chunk.unwrap();
+                        let mut buf = buffer.lock().unwrap();
+                        buf.extend(bytes);
+                    }
+                } => {}
             }
         });
 
         let (tx, rx) = mpsc::channel(100);
+        let decoder_token = self.token.clone();
         let decoder_handle = tokio::spawn(async move {
-            let mut hint = Hint::new();
-            hint.with_extension("mp3");
+            tokio::select! {
+                _ = decoder_token.cancelled() => {},
+                _ = async { 
+                    let mut hint = Hint::new();
+                    hint.with_extension("mp3");
 
-            let meta_opts: MetadataOptions = Default::default();
-            let fmt_opts = FormatOptions {
-                prebuild_seek_index: false,
-                seek_index_fill_rate: 20,
-                enable_gapless: true,
-            };
-            let dec_opts: DecoderOptions = Default::default();
+                    let meta_opts: MetadataOptions = Default::default();
+                    let fmt_opts = FormatOptions {
+                        prebuild_seek_index: false,
+                        seek_index_fill_rate: 20,
+                        enable_gapless: true,
+                    };
+                    let dec_opts: DecoderOptions = Default::default();
 
-            let src = ReadOnlySource::new(stream_buffer);
-            let mss = MediaSourceStream::new(Box::new(src), Default::default());
+                    let src = ReadOnlySource::new(stream_buffer);
+                    let mss = MediaSourceStream::new(Box::new(src), Default::default());
 
-            let probed = symphonia::default::get_probe().format(&hint, mss, &fmt_opts, &meta_opts)
-                .expect("unsupported format");
+                    let probed = symphonia::default::get_probe().format(&hint, mss, &fmt_opts, &meta_opts)
+                        .expect("unsupported format");
 
-            let mut format = probed.format;
-            let track = format.tracks()
-                .iter()
-                .find(|t| t.codec_params.codec != CODEC_TYPE_NULL)
-                .expect("no supported audio tracks");
+                    let mut format = probed.format;
+                    let track = format.tracks()
+                        .iter()
+                        .find(|t| t.codec_params.codec != CODEC_TYPE_NULL)
+                        .expect("no supported audio tracks");
 
-            let mut decoder = symphonia::default::get_codecs().make(&track.codec_params, &dec_opts)
-                .expect("unsupported codec");
+                    let mut decoder = symphonia::default::get_codecs().make(&track.codec_params, &dec_opts)
+                        .expect("unsupported codec");
 
-            loop {
-                let packet = match format.next_packet() {
-                    Ok(packet) => packet,
-                    Err(Error::ResetRequired) => {
-                        unimplemented!();
-                    }
-                    Err(err) => {
-                        break;
-                    }
-                };
+                    loop {
+                        let packet = match format.next_packet() {
+                            Ok(packet) => packet,
+                            Err(Error::ResetRequired) => {
+                                unimplemented!();
+                            }
+                            Err(err) => {
+                                break;
+                            }
+                        };
 
-                while !format.metadata().is_latest() {
-                    format.metadata().pop();
-                }
+                        while !format.metadata().is_latest() {
+                            format.metadata().pop();
+                        }
 
-                match decoder.decode(&packet) {
-                    Ok(decoded) => {
-                        if let AudioBufferRef::F32(buf) = decoded {
-                            let mut samples = Vec::with_capacity(buf.frames() * buf.spec().channels.count());
-                            for frame in 0..buf.frames() {
-                                for channel in 0..buf.spec().channels.count() {
-                                    samples.push(buf.chan(channel)[frame]);
+                        match decoder.decode(&packet) {
+                            Ok(decoded) => {
+                                if let AudioBufferRef::F32(buf) = decoded {
+                                    let mut samples = Vec::with_capacity(buf.frames() * buf.spec().channels.count());
+                                    for frame in 0..buf.frames() {
+                                        for channel in 0..buf.spec().channels.count() {
+                                            samples.push(buf.chan(channel)[frame]);
+                                        }
+                                    }
+                                    let _ = tx.send(samples).await;
                                 }
                             }
-                            let _ = tx.send(samples).await;
+                            Err(Error::IoError(_)) => continue,
+                            Err(Error::DecodeError(_)) => continue,
+                            Err(_) => break,
                         }
                     }
-                    Err(Error::IoError(_)) => continue,
-                    Err(Error::DecodeError(_)) => continue,
-                    Err(_) => break,
-                }
+                } => {}
             }
         });
 
@@ -223,6 +238,10 @@ impl Playback {
         self.status = Status::Playing;
 
         Ok(())
+    }
+
+    pub fn cancel(&mut self) {
+        self.token.cancel();
     }
 
     pub fn toggle(&mut self) {

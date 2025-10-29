@@ -137,6 +137,9 @@ impl App {
             self.update_recents(track.clone());
             self.current_track = Some(track);
         }
+        if let Some(playback) = &mut self.playback {
+            playback.cancel();
+        }
     }
 
     fn update_recents(&mut self, track: Track) {

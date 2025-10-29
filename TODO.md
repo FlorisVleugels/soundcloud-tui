@@ -12,7 +12,6 @@
 - Improve search functionality to cover other query params
 
 ## Performance
-- Close playback after track finishes or next track
 - Send multiple chunks at once to reduce cycles
 - Separate draw loop from io (not an issue yet, might never be)
 
@@ -32,10 +31,8 @@
 - Fix body title depending on if its a playlist or library item
 
 ## Audio
-- Drop stream handle when playing a new track
 - Dont show warning messages from Rodio over tui
 - Improve error handling in playback.rs, shouldnt crash the app if something happens
 
 ## Bugs?
 - Some fetch tracks doesnt work prolly cus json decode not working sometimes
-- Did performance drop ater 'recent tracks' commit??
