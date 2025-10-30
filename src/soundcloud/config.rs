@@ -26,10 +26,10 @@ impl ClientConfig {
         let config_file = File::open(config_path)?;
 
         let d = serde_yaml::Deserializer::from_reader(config_file);
-        let config = Value::deserialize(d).unwrap();
-        let value: Self = serde_yaml::from_value(config).unwrap();
+        let value = Value::deserialize(d).unwrap();
+        let client_config: Self = serde_yaml::from_value(value).unwrap();
 
-        Ok(value)
+        Ok(client_config)
     }
 
     pub fn set_client_code(&mut self, code: String) {

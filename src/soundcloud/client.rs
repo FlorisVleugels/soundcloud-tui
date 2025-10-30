@@ -33,10 +33,10 @@ impl Client {
         let token_path = path("refresh.yml")?;
         let token_file = File::open(token_path)?;
         let d = serde_yaml::Deserializer::from_reader(token_file);
-        let token = Value::deserialize(d).unwrap();
-        let value: RefreshToken = serde_yaml::from_value(token).unwrap();
+        let value = Value::deserialize(d).unwrap();
+        let refresh_token: RefreshToken = serde_yaml::from_value(value).unwrap();
 
-        if let Some(refresh_token) = value.token {
+        if let Some(refresh_token) = refresh_token.token {
             let (access_token, refresh_token) = Self::refresh_from_file(&refresh_token, &config, &client).await;
             Ok(Client {
                 config,
