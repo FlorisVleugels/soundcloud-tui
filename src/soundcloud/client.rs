@@ -1,7 +1,6 @@
 use std::error::Error;
 use std::fs::{self, File};
 use std::sync::{Arc, Mutex};
-use serde_yaml::Value;
 use serde::{Serialize, Deserialize};
 
 use crate::app::App;
@@ -31,10 +30,10 @@ impl Client {
         let client = reqwest::Client::new();
 
         let token_path = path("refresh.yml")?;
-        let token_file = File::open(token_path)?;
-        let d = serde_yaml::Deserializer::from_reader(token_file);
-        let value = Value::deserialize(d).unwrap();
-        let refresh_token: RefreshToken = serde_yaml::from_value(value)?;
+        let refresh_token = match File::open(&token_path) {
+            Ok(file) => serde_yaml::from_reader(file)?,
+            Err(_) => RefreshToken { token: None }
+        };
 
         if let Some(refresh_token) = refresh_token.token {
             let (access_token, refresh_token) = Self::refresh_from_file(&refresh_token, &config, &client).await;

@@ -1,8 +1,6 @@
-use std::error::Error;
 use std::fs::{self, File};
 use std::io::ErrorKind;
 use serde::{Serialize, Deserialize};
-use serde_yaml::Value;
 
 use super::path;
 
@@ -22,8 +20,8 @@ const AUTH_URL: &str = "https://secure.soundcloud.com/authorize";
 
 impl ClientConfig {
     pub fn load() -> Result<Self, Box<dyn std::error::Error>> {
-        let config_path = path("client.yml")?;
-        match File::open(&config_path) {
+        let client_path = path("client.yml")?;
+        match File::open(&client_path) {
             Ok(file) => {
                 let config = serde_yaml::from_reader(file)?;
                 Ok(config)
@@ -36,7 +34,7 @@ impl ClientConfig {
                     code_verifier: None,
                 };
 
-                let file = File::create(&config_path)?;
+                let file = File::create(&client_path)?;
                 serde_yaml::to_writer(file, &config)?;
 
                 Err("client.yml created — please update it with your credentials".into())
@@ -59,11 +57,11 @@ impl ClientConfig {
 
     fn save(&self) {
         // add else for the event that Err() from path()
-        if let Ok(config_path) = path("client.yml") {
+        if let Ok(client_path) = path("client.yml") {
             let file = fs::OpenOptions::new()
                 .write(true)
                 .create(true)
-                .open(config_path)
+                .open(client_path)
                 .unwrap();
             serde_yaml::to_writer(file, &self).unwrap();
         }
