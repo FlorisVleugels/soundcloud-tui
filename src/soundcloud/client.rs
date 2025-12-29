@@ -72,7 +72,7 @@ impl Client {
 
     async fn refresh(&mut self) {
         let refresh_string = self.refresh_token.token.as_ref().unwrap();
-        let tokens = api::refresh(&refresh_string,
+        let tokens = api::refresh(refresh_string,
             &self.config, &self.client).await.unwrap();
         self.refresh_token = RefreshToken{ token: Some(tokens.refresh_token) };
         self.access_token = AccessToken(tokens.access_token);
@@ -137,7 +137,7 @@ impl Client {
     }
 
     pub async fn playlist_tracks(&self, app: &mut App) {
-        let tracks_url = &app.liked_playlists.as_ref().unwrap().collection.iter().nth(app.playlists_index).unwrap().tracks_uri;
+        let tracks_url = &app.liked_playlists.as_ref().unwrap().collection.get(app.playlists_index).unwrap().tracks_uri;
         let response = api::playlist_tracks(&self.access_token.0, &self.client, tracks_url).await;
         if let Ok(mut tracks) = response {
             for track in &mut tracks.collection {

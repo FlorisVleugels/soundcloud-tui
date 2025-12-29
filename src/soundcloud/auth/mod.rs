@@ -33,7 +33,7 @@ pub fn auth(
     });
 
     while !config.lock().unwrap().is_complete() {
-        terminal.draw(|frame| ui::auth(frame))?;
+        terminal.draw(ui::auth)?;
         if handle()? {
             token.cancel();
             return Ok(None)
@@ -52,12 +52,10 @@ async fn run(config: Arc<Mutex<ClientConfig>>) -> Result<(), Box<dyn Error>>{
 
 
 pub fn handle() -> std::io::Result<bool> {
-    if poll(Duration::from_millis(100))? {
-        if let Event::Key(key) = event::read()? {
-            if let KeyCode::Char('q') = key.code {
+    if poll(Duration::from_millis(100))?
+        && let Event::Key(key) = event::read()?
+            && let KeyCode::Char('q') = key.code {
                 return Ok(true)
             }
-        }
-    }
     Ok(false)
 }

@@ -105,7 +105,7 @@ fn draw_progress_bar(
     rect: Rect,
 ) {
     let pos = app.playback.as_ref().unwrap().position();
-    let diff = (pos as f64 - track.duration as f64) * - 1.0;
+    let diff = -(pos as f64 - track.duration as f64);
     let label = Span::from(
         format!("{}/{} (-{})", 
             format_duration(pos),
@@ -182,7 +182,7 @@ fn draw_playlists(
         for (i, playlist) in playlists.collection.iter().enumerate() {
             match app.focus {
                 Focus::Playlists => {
-                    if &i == &app.playlists_index {
+                    if i == app.playlists_index {
                         titles.push(Line::from(&playlist.title[..])
                             .style(Color::Yellow));
                             } else {
@@ -219,7 +219,7 @@ fn draw_tracks(
         for (i, track) in tracks.collection.iter().enumerate() {
             match app.focus {
                 Focus::Body => {
-                    if &i == &app.body_index {
+                    if i == app.body_index {
                         rows.push(Row::new(track.table_row_data())
                             .style(Color::Yellow));
                     } else {
@@ -321,11 +321,11 @@ fn draw_theme(frame: &mut Frame, rect: Rect) {
     frame.render_widget(theme, rect);
 }
 
-fn _waveform_chart(track: &Track) -> BarChart {
+fn _waveform_chart(track: &Track) -> BarChart<'_> {
     let mut bars: Vec<Bar> = vec![];
     if let Some(waveform) = &track.waveform {
         for value in waveform {
-            bars.push(Bar::default().value(value.clone().into()));
+            bars.push(Bar::default().value((*value).into()));
         }
     }
     BarChart::default()

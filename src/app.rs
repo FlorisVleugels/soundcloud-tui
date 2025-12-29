@@ -69,21 +69,21 @@ impl App {
         match self.focus {
             Focus::Body => { 
                 if self.body_index < self.tracks.as_ref().unwrap().collection.iter().len() - 1 {
-                    self.body_index = self.body_index + 1
+                    self.body_index += 1
                 } else {
                     self.body_index = 0;
                 }
             }
             Focus::Library => {
                 if self.library_index < LIBRARY_ITEMS.len() - 1 {
-                    self.library_index = self.library_index + 1
+                    self.library_index += 1
                 } else {
                     self.library_index = 0;
                 }
             }
             Focus::Playlists => {
                 if self.playlists_index < self.liked_playlists.as_ref().unwrap().collection.iter().len() - 1 {
-                    self.playlists_index = self.playlists_index + 1
+                    self.playlists_index += 1
                 } else {
                     self.playlists_index = 0;
                 }
@@ -98,33 +98,33 @@ impl App {
                 if self.body_index == 0  {
                     self.body_index = self.tracks.as_ref().unwrap().collection.iter().len() - 1
                 } else {
-                    self.body_index = self.body_index - 1
+                    self.body_index -= 1
                 }
             }
             Focus::Library => {
                 if self.library_index == 0 {
                     self.library_index = LIBRARY_ITEMS.len() - 1
                 } else {
-                    self.library_index = self.library_index - 1
+                    self.library_index -= 1
                 }
             }
             Focus::Playlists => {
                 if self.playlists_index == 0  {
                     self.playlists_index = self.liked_playlists.as_ref().unwrap().collection.iter().len() - 1
                 } else {
-                    self.playlists_index = self.playlists_index - 1
+                    self.playlists_index -= 1
                 }
             }
             _ => {}
         }
     }
 
-    fn increase(i: &mut usize, length: &usize) {
+    fn increase(_i: &mut usize, _length: &usize) {
         todo!()
     }
 
     pub fn title(&self) -> &str {
-        &self.liked_playlists.as_ref().unwrap().collection.iter().nth(self.playlists_index).unwrap().title
+        &self.liked_playlists.as_ref().unwrap().collection.get(self.playlists_index).unwrap().title
     }
 
     pub fn toggle_help(&mut self) {
@@ -133,7 +133,7 @@ impl App {
 
     pub fn set_track(&mut self) {
         if let Some(tracks) = &self.tracks {
-            let track = tracks.collection.iter().nth(self.body_index).unwrap().clone();
+            let track = tracks.collection.get(self.body_index).unwrap().clone();
             self.update_recents(track.clone());
             self.current_track = Some(track);
         }
@@ -209,15 +209,10 @@ impl App {
     }
     
     pub fn set_recents(&mut self) {
-        self.tracks = match &self.recents {
-            Some(tracks) => Some(
-                Tracks {
+        self.tracks = self.recents.as_ref().map(|tracks| Tracks {
                     collection: tracks.collection.clone(),
                     next_href: None
-                }
-            ),
-            None => None
-        };
+                });
     }
 
     pub fn toggle_playback(&mut self) {

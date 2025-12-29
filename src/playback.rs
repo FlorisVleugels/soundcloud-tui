@@ -188,7 +188,7 @@ impl Playback {
                             Err(Error::ResetRequired) => {
                                 unimplemented!();
                             }
-                            Err(err) => {
+                            Err(_err) => {
                                 break;
                             }
                         };
@@ -260,14 +260,14 @@ impl Playback {
 
     pub fn increase(&self, volume: &mut f32) {
         if *volume < MAX_VOLUME {
-            *volume = *volume + VOLUME_INTERVAL;
+            *volume += VOLUME_INTERVAL;
             self.sink.as_ref().unwrap().set_volume(*volume);
         }
     }
 
     pub fn decrease(&self, volume: &mut f32) {
         if *volume > 0.00 {
-            *volume = *volume - VOLUME_INTERVAL;
+            *volume -= VOLUME_INTERVAL;
             self.sink.as_ref().unwrap().set_volume(*volume);
         }
     }

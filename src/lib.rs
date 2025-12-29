@@ -42,15 +42,14 @@ pub async fn run(terminal: &mut ratatui::DefaultTerminal) -> Result<(), Box<dyn 
     client.lock().unwrap().liked_playlists(&app).await;
 
     loop {
-        terminal.draw(|frame| ui::render_app(frame, &mut *app.lock().unwrap()))?;
-        if poll(Duration::from_secs(1))? {
-            if events::handle(&mut *app.lock().unwrap(), &client).await? {
+        terminal.draw(|frame| ui::render_app(frame, &app.lock().unwrap()))?;
+        if poll(Duration::from_secs(1))?
+            && events::handle(&mut app.lock().unwrap(), &client).await? {
                 client.lock().unwrap().store_refresh_token();
                 if let Some(playback) = &mut app.lock().unwrap().playback {
                     playback.cancel();
                 }
                 break Ok(());
             }
-        }
     }
 }
