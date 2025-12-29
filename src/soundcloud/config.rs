@@ -1,5 +1,6 @@
 use std::error::Error;
 use std::fs::{self, File};
+use std::io::ErrorKind;
 use serde::{Serialize, Deserialize};
 use serde_yaml::Value;
 
@@ -20,16 +21,28 @@ pub struct ClientConfig {
 const AUTH_URL: &str = "https://secure.soundcloud.com/authorize";
 
 impl ClientConfig {
-    pub fn load() -> Result<Self, Box<dyn Error>> {
+    pub fn load() -> Result<Self, Box<dyn std::error::Error>> {
         let config_path = path("client.yml")?;
+        match File::open(&config_path) {
+            Ok(file) => {
+                let config = serde_yaml::from_reader(file)?;
+                Ok(config)
+            }
+            Err(e) if e.kind() == ErrorKind::NotFound => {
+                let config = ClientConfig {
+                    client_id: "YOUR_CLIENT_ID".to_string(),
+                    client_secret: "YOUR_CLIENT_SECRET".to_string(),
+                    client_code: None,
+                    code_verifier: None,
+                };
 
-        let config_file = File::open(config_path)?;
+                let file = File::create(&config_path)?;
+                serde_yaml::to_writer(file, &config)?;
 
-        let d = serde_yaml::Deserializer::from_reader(config_file);
-        let value = Value::deserialize(d).unwrap();
-        let client_config: Self = serde_yaml::from_value(value).unwrap();
-
-        Ok(client_config)
+                Err("client.yml created — please update it with your credentials".into())
+            }
+            Err(e) => Err(e.into()),
+        }
     }
 
     pub fn set_client_code(&mut self, code: String) {
