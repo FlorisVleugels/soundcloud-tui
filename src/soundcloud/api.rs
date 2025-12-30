@@ -1,9 +1,9 @@
-use std::{collections::HashMap, u8};
+use std::collections::HashMap;
 
 use reqwest::Error;
 
-use super::models::*;
 use super::config::ClientConfig;
+use super::models::*;
 
 const BASE_URL: &str = "https://api.soundcloud.com/";
 const TOKEN_URL: &str = "https://secure.soundcloud.com/oauth/token";
@@ -35,7 +35,7 @@ pub async fn oauth_tokens(
 }
 
 pub async fn refresh(
-    refresh_token: &String,
+    refresh_token: &str,
     config: &ClientConfig,
     client: &reqwest::Client,
 ) -> Result<OauthTokens, Error> {
@@ -57,19 +57,20 @@ pub async fn refresh(
     Ok(response)
 }
 
-pub async fn _search_playlists() {
-    
-}
+pub async fn _search_playlists() {}
 
 pub async fn search_tracks(
     access_token: &String,
     client: &reqwest::Client,
-    input: &String
+    input: &String,
 ) -> Result<Tracks, Error> {
     let limit = "limit=40";
     let access = "access=playable";
     let query = &input;
-    let url = format!("{}tracks?q={}&{}&{}&linked_partitioning=true", BASE_URL, query, limit, access);
+    let url = format!(
+        "{}tracks?q={}&{}&{}&linked_partitioning=true",
+        BASE_URL, query, limit, access
+    );
     let response = client
         .get(url)
         .header("accept", "application/json; charset=utf-8")
@@ -84,10 +85,13 @@ pub async fn search_tracks(
 
 pub async fn liked_playlists(
     access_token: &String,
-    client: &reqwest::Client
+    client: &reqwest::Client,
 ) -> Result<Playlists, Error> {
     let limit = "limit=20";
-    let url = format!("{}me/likes/playlists?{}&linked_partitioning=true", BASE_URL, limit);
+    let url = format!(
+        "{}me/likes/playlists?{}&linked_partitioning=true",
+        BASE_URL, limit
+    );
     let response = client
         .get(url)
         .header("accept", "application/json; charset=utf-8")
@@ -102,11 +106,14 @@ pub async fn liked_playlists(
 
 pub async fn liked_tracks(
     access_token: &String,
-    client: &reqwest::Client
+    client: &reqwest::Client,
 ) -> Result<Tracks, Error> {
     let limit = "limit=20";
     let access = "access=playable";
-    let url = format!("{}me/likes/tracks?{}&{}&linked_partitioning=true", BASE_URL, limit, access);
+    let url = format!(
+        "{}me/likes/tracks?{}&{}&linked_partitioning=true",
+        BASE_URL, limit, access
+    );
     let response = client
         .get(url)
         .header("accept", "application/json; charset=utf-8")
@@ -156,10 +163,7 @@ pub async fn streams(
     Ok(response)
 }
 
-pub async fn waveform(
-    client: &reqwest::Client,
-    waveform_url: &str
-) -> Result<Vec<u8>, Error> {
+pub async fn _waveform(client: &reqwest::Client, waveform_url: &str) -> Result<Vec<u8>, Error> {
     let response = client
         .get(waveform_url)
         .header("accept", "application/json; charset=utf-8")

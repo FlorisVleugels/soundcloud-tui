@@ -1,20 +1,17 @@
-use std::{collections::VecDeque, io::Read};
 use std::sync::{Arc, Mutex};
+use std::{collections::VecDeque, io::Read};
 
 use rodio::{OutputStream, OutputStreamBuilder, Sink, Source};
 use symphonia::core::{
-    audio::{AudioBufferRef, Signal}, 
-    codecs::{DecoderOptions, CODEC_TYPE_NULL}, 
-    errors::Error, 
-    formats::FormatOptions, 
-    io::{MediaSourceStream, ReadOnlySource}, 
-    meta::MetadataOptions, 
-    probe::Hint
+    audio::{AudioBufferRef, Signal},
+    codecs::{CODEC_TYPE_NULL, DecoderOptions},
+    errors::Error,
+    formats::FormatOptions,
+    io::{MediaSourceStream, ReadOnlySource},
+    meta::MetadataOptions,
+    probe::Hint,
 };
-use tokio::{
-    sync::mpsc,
-    task::JoinHandle
-};
+use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_stream::StreamExt;
 use tokio_util::sync::CancellationToken;
 
@@ -26,7 +23,7 @@ const VOLUME_INTERVAL: f32 = 0.1;
 pub struct Playback {
     streams: Streams,
     pub status: Status,
-    position: u32,
+    //position: u32,
     sink: Option<Sink>,
     _output: Option<OutputStream>,
     handle: Option<JoinHandle<()>>,
@@ -37,7 +34,7 @@ pub enum Status {
     Playing,
     Paused,
     Available,
-    Unavailable,
+    //Unavailable,
 }
 
 struct AudioSource {
@@ -57,7 +54,7 @@ impl std::fmt::Display for Status {
             Status::Playing => write!(f, "Playing"),
             Status::Paused => write!(f, "Paused"),
             Status::Available => write!(f, "Available"),
-            Status::Unavailable => write!(f, "Unavailable"),
+            //Status::Unavailable => write!(f, "Unavailable"),
         }
     }
 }
@@ -81,7 +78,7 @@ impl Iterator for AudioSource {
 
 impl Source for AudioSource {
     fn channels(&self) -> rodio::ChannelCount {
-        self.channels 
+        self.channels
     }
 
     fn sample_rate(&self) -> rodio::SampleRate {
@@ -97,7 +94,7 @@ impl Source for AudioSource {
     }
 }
 
-impl Read for StreamBuffer { 
+impl Read for StreamBuffer {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         let mut total_copied = 0;
         while total_copied < buf.len() {
@@ -115,7 +112,7 @@ impl StreamBuffer {
         Self {
             buffer: Arc::new(Mutex::new(VecDeque::new())),
         }
-    }  
+    }
 }
 
 impl Playback {
@@ -123,7 +120,7 @@ impl Playback {
         Self {
             streams,
             status: Status::Available,
-            position: 0,
+            //position: 0,
             sink: None,
             _output: None,
             handle: None,
@@ -135,12 +132,14 @@ impl Playback {
         let stream_buffer = StreamBuffer::new();
         let buffer = Arc::clone(&stream_buffer.buffer);
 
-        let mut bytes_stream = reqwest::get(&self.streams.http_mp3_128_url).await?.bytes_stream();
+        let mut bytes_stream = reqwest::get(&self.streams.http_mp3_128_url)
+            .await?
+            .bytes_stream();
         let network_token = self.token.clone();
         let network_handle = tokio::spawn(async move {
             tokio::select! {
                 _ = network_token.cancelled() => {},
-                _ = async { 
+                _ = async {
                     while let Some(chunk) = bytes_stream.next().await {
                         let bytes = chunk.unwrap();
                         let mut buf = buffer.lock().unwrap();
@@ -155,7 +154,7 @@ impl Playback {
         let decoder_handle = tokio::spawn(async move {
             tokio::select! {
                 _ = decoder_token.cancelled() => {},
-                _ = async { 
+                _ = async {
                     let mut hint = Hint::new();
                     hint.with_extension("mp3");
 
@@ -223,16 +222,18 @@ impl Playback {
         output_stream.log_on_drop(false);
         let sink = rodio::Sink::connect_new(output_stream.mixer());
         let deque: VecDeque<f32> = VecDeque::new();
-        let source = AudioSource { rx, buffer: deque, channels: 2, sample_rate: 44100 };
+        let source = AudioSource {
+            rx,
+            buffer: deque,
+            channels: 2,
+            sample_rate: 44100,
+        };
         sink.append(source);
         self.sink = Some(sink);
         self._output = Some(output_stream);
 
-        let handle = tokio::spawn( async move {
-            let _ = tokio::join!(
-                network_handle,
-                decoder_handle
-            );
+        let handle = tokio::spawn(async move {
+            let _ = tokio::join!(network_handle, decoder_handle);
         });
         self.handle = Some(handle);
         self.status = Status::Playing;

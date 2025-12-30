@@ -6,7 +6,7 @@ pub struct OauthTokens {
     expires_in: u16,
     scope: String,
     pub refresh_token: String,
-    token_type: String
+    token_type: String,
 }
 
 #[derive(Deserialize, Debug)]

@@ -1,11 +1,10 @@
+use serde::{Deserialize, Serialize};
 use std::fs::{self, File};
 use std::io::ErrorKind;
-use serde::{Serialize, Deserialize};
 
 use super::path;
 
-pub struct AppConfig {
-}
+pub struct _AppConfig {}
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct ClientConfig {
@@ -52,15 +51,13 @@ impl ClientConfig {
         self.client_code.as_ref()
     }
 
-    fn create_client_config() {
-    }
-
     fn save(&self) {
         // add else for the event that Err() from path()
         if let Ok(client_path) = path("client.yml") {
             let file = fs::OpenOptions::new()
                 .write(true)
                 .create(true)
+                .truncate(true)
                 .open(client_path)
                 .unwrap();
             serde_yaml::to_writer(file, &self).unwrap();
@@ -68,30 +65,24 @@ impl ClientConfig {
     }
 
     pub fn is_complete(&self) -> bool {
-        match (&self.client_code, &self.code_verifier) {
-            (Some(_), Some(_)) => true,
-            _ => false
-        }
+        matches!((&self.client_code, &self.code_verifier), (Some(_), Some(_)))
     }
 
     pub fn auth_url(&self, code_challenge: &String) -> String {
         let code_verifier = match &self.code_verifier {
             Some(code) => code,
-            None => panic!()
+            None => panic!(),
         };
 
-        format!("{}\
+        format!(
+            "{}\
             ?client_id={}\
             &redirect_uri={}\
             &response_type=code\
             &code_challenge={}\
             &code_challenge_method=S256\
             &state={}",
-            AUTH_URL, 
-            self.client_id, 
-            "http://localhost:3000", 
-            code_challenge, 
-            code_verifier
+            AUTH_URL, self.client_id, "http://localhost:3000", code_challenge, code_verifier
         )
     }
 }

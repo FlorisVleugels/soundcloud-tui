@@ -1,23 +1,20 @@
-use ring::digest::{digest, SHA256};
-use rand::{
-    Rng,
-    distr::Alphanumeric
-};
-use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine as _};
+use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
+use rand::{Rng, distr::Alphanumeric};
+use ring::digest::{SHA256, digest};
 
-pub struct PKCE {
+pub struct Pkce {
     pub verifier: String,
     pub challenge: String,
 }
 
-impl PKCE {
+impl Pkce {
     pub fn new() -> Self {
         let verifier = Self::code_verifier();
         let challenge = Self::code_challenge(&verifier);
 
-        PKCE {
-            verifier, 
-            challenge
+        Pkce {
+            verifier,
+            challenge,
         }
     }
 

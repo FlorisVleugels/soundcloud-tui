@@ -1,11 +1,12 @@
 use std::{
-    error::Error, fs,
-    sync::{Arc, Mutex}
+    error::Error,
+    fs,
+    sync::{Arc, Mutex},
 };
 
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
-    net::{TcpListener, TcpStream}
+    net::{TcpListener, TcpStream},
 };
 
 use super::super::config::ClientConfig;
@@ -18,10 +19,10 @@ pub async fn serve(client_config: &Arc<Mutex<ClientConfig>>) -> Result<(), Box<d
             Ok((stream, _)) => {
                 handle_connection(stream, client_config).await?;
                 match client_config.lock().unwrap().client_code() {
-                    Some(_) => break, 
-                    None => continue
+                    Some(_) => break,
+                    None => continue,
                 }
-            },
+            }
             Err(e) => println!("couldn't get client: {:?}", e),
         }
     }
@@ -31,10 +32,9 @@ pub async fn serve(client_config: &Arc<Mutex<ClientConfig>>) -> Result<(), Box<d
 async fn handle_connection(
     mut stream: TcpStream,
     client_config: &Arc<Mutex<ClientConfig>>,
-    ) -> Result<(), Box<dyn Error>>{
-
+) -> Result<(), Box<dyn Error>> {
     let mut buffer = [0; 512];
-    stream.read(&mut buffer).await?;
+    stream.read_exact(&mut buffer).await?;
     let request = String::from_utf8_lossy(&buffer[..]);
     let request_line = request.lines().next().unwrap();
 
@@ -44,17 +44,17 @@ async fn handle_connection(
             client_config.lock().unwrap().set_client_code(code);
 
             ("HTTP/1.1 200 OK", "src/static/redirect.html")
-        },
-        _ =>  ("HTTP/1.1 400 BAD REQUEST", "src/static/error.html")
+        }
+        _ => ("HTTP/1.1 400 BAD REQUEST", "src/static/error.html"),
     };
 
     let contents = fs::read_to_string(filename).unwrap();
     let length = contents.len();
-        
+
     let response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
 
     stream.write_all(response.as_bytes()).await?;
-    
+
     Ok(())
 }
 

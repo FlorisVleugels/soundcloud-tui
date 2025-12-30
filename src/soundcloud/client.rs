@@ -1,7 +1,7 @@
+use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fs::{self, File};
 use std::sync::{Arc, Mutex};
-use serde::{Serialize, Deserialize};
 
 use crate::app::App;
 use crate::playback::Playback;
@@ -14,8 +14,8 @@ use super::path;
 pub struct AccessToken(pub String);
 
 #[derive(Serialize, Deserialize)]
-pub struct RefreshToken{
-    token: Option<String>
+pub struct RefreshToken {
+    token: Option<String>,
 }
 
 pub struct Client {
@@ -32,11 +32,12 @@ impl Client {
         let token_path = path("refresh.yml")?;
         let refresh_token = match File::open(&token_path) {
             Ok(file) => serde_yaml::from_reader(file)?,
-            Err(_) => RefreshToken { token: None }
+            Err(_) => RefreshToken { token: None },
         };
 
         if let Some(refresh_token) = refresh_token.token {
-            let (access_token, refresh_token) = Self::refresh_from_file(&refresh_token, &config, &client).await;
+            let (access_token, refresh_token) =
+                Self::refresh_from_file(&refresh_token, &config, &client).await;
             Ok(Client {
                 config,
                 access_token,
@@ -53,51 +54,59 @@ impl Client {
             })
         }
     }
-    
+
     pub fn store_refresh_token(&self) {
         if let Ok(token_path) = path("refresh.yml") {
             let file = fs::OpenOptions::new()
                 .write(true)
                 .create(true)
+                .truncate(true)
                 .open(token_path)
                 .unwrap();
             serde_yaml::to_writer(file, &self.refresh_token).unwrap();
         }
     }
 
-    fn access_token(&self) -> &AccessToken {
+    fn _access_token(&self) -> &AccessToken {
         // base64 decode jwt, check if expired. If yes call refresh, then return token
         &self.access_token
     }
 
-    async fn refresh(&mut self) {
+    async fn _refresh(&mut self) {
         let refresh_string = self.refresh_token.token.as_ref().unwrap();
-        let tokens = api::refresh(refresh_string,
-            &self.config, &self.client).await.unwrap();
-        self.refresh_token = RefreshToken{ token: Some(tokens.refresh_token) };
+        let tokens = api::refresh(refresh_string, &self.config, &self.client)
+            .await
+            .unwrap();
+        self.refresh_token = RefreshToken {
+            token: Some(tokens.refresh_token),
+        };
         self.access_token = AccessToken(tokens.access_token);
     }
 
     async fn refresh_from_file(
-        refresh_token: &String,
+        refresh_token: &str,
         config: &ClientConfig,
-        client: &reqwest::Client
+        client: &reqwest::Client,
     ) -> (AccessToken, RefreshToken) {
         let tokens = api::refresh(refresh_token, config, client).await.unwrap();
         (
-            AccessToken(tokens.access_token), 
-            RefreshToken { token: Some(tokens.refresh_token) },
+            AccessToken(tokens.access_token),
+            RefreshToken {
+                token: Some(tokens.refresh_token),
+            },
         )
     }
 
     async fn fetch_tokens(
         config: &ClientConfig,
-        client: &reqwest::Client
+        client: &reqwest::Client,
     ) -> (AccessToken, RefreshToken) {
         let tokens = api::oauth_tokens(config, client).await.unwrap();
         (
-            AccessToken(tokens.access_token), 
-            RefreshToken { token: Some(tokens.refresh_token) },
+            AccessToken(tokens.access_token),
+            RefreshToken {
+                token: Some(tokens.refresh_token),
+            },
         )
     }
 
@@ -137,7 +146,14 @@ impl Client {
     }
 
     pub async fn playlist_tracks(&self, app: &mut App) {
-        let tracks_url = &app.liked_playlists.as_ref().unwrap().collection.get(app.playlists_index).unwrap().tracks_uri;
+        let tracks_url = &app
+            .liked_playlists
+            .as_ref()
+            .unwrap()
+            .collection
+            .get(app.playlists_index)
+            .unwrap()
+            .tracks_uri;
         let response = api::playlist_tracks(&self.access_token.0, &self.client, tracks_url).await;
         if let Ok(mut tracks) = response {
             for track in &mut tracks.collection {
@@ -159,7 +175,7 @@ impl Client {
 
     pub async fn _waveform(&self, app: &mut App) {
         if let Some(track) = &mut app.current_track {
-            let response = api::waveform(&self.client, &track.waveform_url).await;
+            let response = api::_waveform(&self.client, &track.waveform_url).await;
             if let Ok(waveform) = response {
                 track.waveform = Some(waveform);
             }

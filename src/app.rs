@@ -1,7 +1,9 @@
+use std::error::Error;
+
 use crate::{
-    playback::Playback, 
+    playback::Playback,
     soundcloud::models::{Playlists, Track, Tracks},
-    ui::constants::LIBRARY_ITEMS
+    ui::constants::LIBRARY_ITEMS,
 };
 
 pub struct App {
@@ -38,7 +40,7 @@ pub enum Focus {
 
 pub enum Body {
     Welcome,
-    Tracks, 
+    Tracks,
     Waveform,
 }
 
@@ -67,7 +69,7 @@ impl App {
 
     pub fn increase_index(&mut self) {
         match self.focus {
-            Focus::Body => { 
+            Focus::Body => {
                 if self.body_index < self.tracks.as_ref().unwrap().collection.iter().len() - 1 {
                     self.body_index += 1
                 } else {
@@ -82,7 +84,16 @@ impl App {
                 }
             }
             Focus::Playlists => {
-                if self.playlists_index < self.liked_playlists.as_ref().unwrap().collection.iter().len() - 1 {
+                if self.playlists_index
+                    < self
+                        .liked_playlists
+                        .as_ref()
+                        .unwrap()
+                        .collection
+                        .iter()
+                        .len()
+                        - 1
+                {
                     self.playlists_index += 1
                 } else {
                     self.playlists_index = 0;
@@ -94,8 +105,8 @@ impl App {
 
     pub fn decrease_index(&mut self) {
         match self.focus {
-            Focus::Body => { 
-                if self.body_index == 0  {
+            Focus::Body => {
+                if self.body_index == 0 {
                     self.body_index = self.tracks.as_ref().unwrap().collection.iter().len() - 1
                 } else {
                     self.body_index -= 1
@@ -109,8 +120,15 @@ impl App {
                 }
             }
             Focus::Playlists => {
-                if self.playlists_index == 0  {
-                    self.playlists_index = self.liked_playlists.as_ref().unwrap().collection.iter().len() - 1
+                if self.playlists_index == 0 {
+                    self.playlists_index = self
+                        .liked_playlists
+                        .as_ref()
+                        .unwrap()
+                        .collection
+                        .iter()
+                        .len()
+                        - 1
                 } else {
                     self.playlists_index -= 1
                 }
@@ -119,12 +137,19 @@ impl App {
         }
     }
 
-    fn increase(_i: &mut usize, _length: &usize) {
+    fn _increase(_i: &mut usize, _length: &usize) {
         todo!()
     }
 
     pub fn title(&self) -> &str {
-        &self.liked_playlists.as_ref().unwrap().collection.get(self.playlists_index).unwrap().title
+        &self
+            .liked_playlists
+            .as_ref()
+            .unwrap()
+            .collection
+            .get(self.playlists_index)
+            .unwrap()
+            .title
     }
 
     pub fn toggle_help(&mut self) {
@@ -146,19 +171,20 @@ impl App {
         match &mut self.recents {
             Some(tracks) => {
                 tracks.collection.push(track);
-            },
+            }
             None => {
-                self.recents = Some( Tracks {
+                self.recents = Some(Tracks {
                     collection: vec![track],
-                    next_href: None 
+                    next_href: None,
                 })
             }
         }
     }
-    
-    pub async fn play_track(&mut self) {
+
+    pub async fn play_track(&mut self) -> Result<(), Box<dyn Error>> {
         self.focus = Focus::Status;
-        self.playback.as_mut().unwrap().stream().await;
+        self.playback.as_mut().unwrap().stream().await?;
+        Ok(())
     }
 
     pub fn move_cursor_left(&mut self) {
@@ -188,7 +214,6 @@ impl App {
     pub fn delete_char(&mut self) {
         let is_not_cursor_leftmost = self.search_index != 0;
         if is_not_cursor_leftmost {
-
             let current_index = self.search_index;
             let from_left_to_current_index = current_index - 1;
 
@@ -204,15 +229,15 @@ impl App {
         new_cursor_pos.clamp(0, self.input.chars().count())
     }
 
-    pub fn reset_index() {
+    pub fn _reset_index() {
         todo!()
     }
-    
+
     pub fn set_recents(&mut self) {
         self.tracks = self.recents.as_ref().map(|tracks| Tracks {
-                    collection: tracks.collection.clone(),
-                    next_href: None
-                });
+            collection: tracks.collection.clone(),
+            next_href: None,
+        });
     }
 
     pub fn toggle_playback(&mut self) {
