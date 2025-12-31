@@ -1,4 +1,16 @@
-use serde::Deserialize;
+use std::time::{Duration, SystemTime};
+
+use serde::{Deserialize, Serialize};
+
+pub struct AccessToken {
+    pub expires_at: SystemTime,
+    pub token: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct RefreshToken {
+    pub token: Option<String>,
+}
 
 #[derive(Deserialize, Debug)]
 pub struct OauthTokens {
@@ -61,5 +73,45 @@ impl Track {
             &self.genre,
             &self.duration_str.as_ref().unwrap(),
         ]
+    }
+}
+
+impl AccessToken {
+    pub fn is_expired(&self) -> bool {
+        SystemTime::now() > self.expires_at
+    }
+}
+
+impl OauthTokens {
+    pub fn expires_at(&self) -> SystemTime {
+        SystemTime::now()
+            .checked_add(Duration::from_secs(self.expires_in.into()))
+            .unwrap()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn expired_token() {
+        let token = AccessToken {
+            expires_at: SystemTime::now(),
+            token: Default::default(),
+        };
+        std::thread::sleep(Duration::from_millis(1));
+        assert!(token.is_expired())
+    }
+
+    #[test]
+    fn unexpired_token() {
+        let token = AccessToken {
+            expires_at: SystemTime::now()
+                .checked_add(Duration::from_secs(10))
+                .unwrap(),
+            token: Default::default(),
+        };
+        assert!(!token.is_expired())
     }
 }

@@ -1,4 +1,3 @@
-use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fs::{self, File};
 use std::sync::{Arc, Mutex};
@@ -9,14 +8,8 @@ use crate::soundcloud::util;
 
 use super::api;
 use super::config::ClientConfig;
+use super::models::{AccessToken, RefreshToken};
 use super::path;
-
-pub struct AccessToken(pub String);
-
-#[derive(Serialize, Deserialize)]
-pub struct RefreshToken {
-    token: Option<String>,
-}
 
 pub struct Client {
     config: ClientConfig,
@@ -67,20 +60,25 @@ impl Client {
         }
     }
 
-    fn _access_token(&self) -> &AccessToken {
-        // base64 decode jwt, check if expired. If yes call refresh, then return token
-        &self.access_token
+    async fn access_token(&mut self) -> String {
+        if self.access_token.is_expired() {
+            self.refresh().await;
+        }
+        self.access_token.token.clone()
     }
 
-    async fn _refresh(&mut self) {
+    async fn refresh(&mut self) {
         let refresh_string = self.refresh_token.token.as_ref().unwrap();
         let tokens = api::refresh(refresh_string, &self.config, &self.client)
             .await
             .unwrap();
+        self.access_token = AccessToken {
+            expires_at: tokens.expires_at(),
+            token: tokens.access_token,
+        };
         self.refresh_token = RefreshToken {
             token: Some(tokens.refresh_token),
         };
-        self.access_token = AccessToken(tokens.access_token);
     }
 
     async fn refresh_from_file(
@@ -90,7 +88,10 @@ impl Client {
     ) -> (AccessToken, RefreshToken) {
         let tokens = api::refresh(refresh_token, config, client).await.unwrap();
         (
-            AccessToken(tokens.access_token),
+            AccessToken {
+                expires_at: tokens.expires_at(),
+                token: tokens.access_token,
+            },
             RefreshToken {
                 token: Some(tokens.refresh_token),
             },
@@ -103,7 +104,10 @@ impl Client {
     ) -> (AccessToken, RefreshToken) {
         let tokens = api::oauth_tokens(config, client).await.unwrap();
         (
-            AccessToken(tokens.access_token),
+            AccessToken {
+                expires_at: tokens.expires_at(),
+                token: tokens.access_token,
+            },
             RefreshToken {
                 token: Some(tokens.refresh_token),
             },
@@ -114,8 +118,9 @@ impl Client {
         todo!()
     }
 
-    pub async fn search_tracks(&self, app: &mut App) {
-        let response = api::search_tracks(&self.access_token.0, &self.client, &app.input).await;
+    pub async fn search_tracks(&mut self, app: &mut App) {
+        let token = self.access_token().await;
+        let response = api::search_tracks(&token, &self.client, &app.input).await;
         if let Ok(mut tracks) = response {
             for track in &mut tracks.collection {
                 util::convert_duration(track);
@@ -128,15 +133,17 @@ impl Client {
         todo!()
     }
 
-    pub async fn liked_playlists(&self, app: &Arc<Mutex<App>>) {
-        let response = api::liked_playlists(&self.access_token.0, &self.client).await;
+    pub async fn liked_playlists(&mut self, app: &Arc<Mutex<App>>) {
+        let token = self.access_token().await;
+        let response = api::liked_playlists(&token, &self.client).await;
         if let Ok(playlists) = response {
             app.lock().unwrap().liked_playlists = Some(playlists)
         }
     }
 
-    pub async fn liked_tracks(&self, app: &mut App) {
-        let response = api::liked_tracks(&self.access_token.0, &self.client).await;
+    pub async fn liked_tracks(&mut self, app: &mut App) {
+        let token = self.access_token().await;
+        let response = api::liked_tracks(&token, &self.client).await;
         if let Ok(mut tracks) = response {
             for track in &mut tracks.collection {
                 util::convert_duration(track);
@@ -145,7 +152,8 @@ impl Client {
         }
     }
 
-    pub async fn playlist_tracks(&self, app: &mut App) {
+    pub async fn playlist_tracks(&mut self, app: &mut App) {
+        let token = self.access_token().await;
         let tracks_url = &app
             .liked_playlists
             .as_ref()
@@ -154,7 +162,7 @@ impl Client {
             .get(app.playlists_index)
             .unwrap()
             .tracks_uri;
-        let response = api::playlist_tracks(&self.access_token.0, &self.client, tracks_url).await;
+        let response = api::playlist_tracks(&token, &self.client, tracks_url).await;
         if let Ok(mut tracks) = response {
             for track in &mut tracks.collection {
                 util::convert_duration(track);
@@ -163,10 +171,11 @@ impl Client {
         }
     }
 
-    pub async fn streams(&self, app: &mut App) {
+    pub async fn streams(&mut self, app: &mut App) {
+        let token = self.access_token().await;
         if let Some(current_track) = &app.current_track {
             let track_urn = &current_track.urn;
-            let response = api::streams(&self.access_token.0, &self.client, track_urn).await;
+            let response = api::streams(&token, &self.client, track_urn).await;
             if let Ok(streams) = response {
                 app.playback = Some(Playback::init(streams));
             }
