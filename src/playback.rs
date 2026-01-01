@@ -132,19 +132,25 @@ impl Playback {
         let stream_buffer = StreamBuffer::new();
         let buffer = Arc::clone(&stream_buffer.buffer);
 
-        let mut bytes_stream = reqwest::get(&self.hls_playlist.segments[0].url)
-            .await?
-            .bytes_stream();
+        let mut bytes_streams = Vec::new();
+        for segment in &self.hls_playlist.segments {
+            let bytes_stream = reqwest::get(&segment.url)
+                .await?
+                .bytes_stream();
+            bytes_streams.push(bytes_stream);
+        }
         let network_token = self.token.clone();
         let network_handle = tokio::spawn(async move {
             tokio::select! {
                 _ = network_token.cancelled() => {},
                 _ = async {
-                    while let Some(chunk) = bytes_stream.next().await {
-                        let bytes = chunk.unwrap();
-                        let mut buf = buffer.lock().unwrap();
-                        buf.extend(bytes);
-                    }
+                    for mut bytes_stream in bytes_streams {
+                        while let Some(chunk) = bytes_stream.next().await {
+                            let bytes = chunk.unwrap();
+                            let mut buf = buffer.lock().unwrap();
+                            buf.extend(bytes);
+                        }
+                    } 
                 } => {}
             }
         });
