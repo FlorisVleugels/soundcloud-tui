@@ -1,4 +1,6 @@
 use std::sync::{Arc, Mutex};
+use std::thread::sleep;
+use std::time::Duration;
 use std::{collections::VecDeque, io::Read};
 
 use rodio::{OutputStream, OutputStreamBuilder, Sink, Source};
@@ -132,25 +134,26 @@ impl Playback {
         let stream_buffer = StreamBuffer::new();
         let buffer = Arc::clone(&stream_buffer.buffer);
 
-        let mut bytes_streams = Vec::new();
-        for segment in &self.hls_playlist.segments {
-            let bytes_stream = reqwest::get(&segment.url)
-                .await?
-                .bytes_stream();
-            bytes_streams.push(bytes_stream);
-        }
+        let segment_urls: Vec<String> = self.hls_playlist.segments
+            .iter()
+            .map(|s| s.url.clone())
+            .collect();
         let network_token = self.token.clone();
         let network_handle = tokio::spawn(async move {
             tokio::select! {
                 _ = network_token.cancelled() => {},
                 _ = async {
-                    for mut bytes_stream in bytes_streams {
-                        while let Some(chunk) = bytes_stream.next().await {
-                            let bytes = chunk.unwrap();
-                            let mut buf = buffer.lock().unwrap();
-                            buf.extend(bytes);
+                    for url in segment_urls {
+                        if let Ok(response) = reqwest::get(&url).await {
+                            let mut stream = response.bytes_stream();
+
+                            while let Some(chunk) = stream.next().await {
+                                let bytes = chunk.unwrap();
+                                let mut buf = buffer.lock().unwrap();
+                                buf.extend(bytes);
+                            }
                         }
-                    } 
+                    }
                 } => {}
             }
         });
