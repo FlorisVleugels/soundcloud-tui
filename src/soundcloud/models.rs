@@ -59,10 +59,21 @@ pub struct User {
 
 #[derive(Deserialize, Debug)]
 pub struct Streams {
-    pub http_mp3_128_url: String,
     pub hls_mp3_128_url: String,
-    pub hls_opus_64_url: String,
-    pub preview_mp3_128_url: String,
+    // Other formats provided by Soundcloud, not needed atm.
+    //pub hls_aac_160_url: String,
+    //pub preview_mp3_128_url: String,
+}
+
+#[derive(Debug)]
+pub struct HlsPlaylist {
+    pub segments: Vec<HlsSegment>,
+}
+
+#[derive(Debug)]
+pub struct HlsSegment {
+    pub url: String,
+    pub duration: f32,
 }
 
 impl Track {

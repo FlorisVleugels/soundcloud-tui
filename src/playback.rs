@@ -15,13 +15,13 @@ use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_stream::StreamExt;
 use tokio_util::sync::CancellationToken;
 
-use crate::soundcloud::models::Streams;
+use crate::soundcloud::models::HlsPlaylist;
 
 const MAX_VOLUME: f32 = 1.0;
 const VOLUME_INTERVAL: f32 = 0.1;
 
 pub struct Playback {
-    streams: Streams,
+    hls_playlist: HlsPlaylist,
     pub status: Status,
     //position: u32,
     sink: Option<Sink>,
@@ -116,9 +116,9 @@ impl StreamBuffer {
 }
 
 impl Playback {
-    pub fn init(streams: Streams) -> Self {
+    pub fn init(hls_playlist: HlsPlaylist) -> Self {
         Self {
-            streams,
+            hls_playlist,
             status: Status::Available,
             //position: 0,
             sink: None,
@@ -132,7 +132,7 @@ impl Playback {
         let stream_buffer = StreamBuffer::new();
         let buffer = Arc::clone(&stream_buffer.buffer);
 
-        let mut bytes_stream = reqwest::get(&self.streams.http_mp3_128_url)
+        let mut bytes_stream = reqwest::get(&self.hls_playlist.segments[0].url)
             .await?
             .bytes_stream();
         let network_token = self.token.clone();

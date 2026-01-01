@@ -2,6 +2,8 @@ use std::collections::HashMap;
 
 use reqwest::Error;
 
+use crate::soundcloud::util::parse_m3u8;
+
 use super::config::ClientConfig;
 use super::models::*;
 
@@ -161,6 +163,23 @@ pub async fn streams(
         .await?;
 
     Ok(response)
+}
+
+pub async fn hls_playlist(
+    access_token: &String,
+    client: &reqwest::Client,
+    url: &str,
+) -> Result<HlsPlaylist, anyhow::Error> {
+    let response = client
+        .get(url)
+        .header("accept", "application/json; charset=utf-8")
+        .header("Authorization", format!("OAuth {}", access_token))
+        .send()
+        .await?;
+
+    let playlist = parse_m3u8(response).await?;
+
+    Ok(playlist)
 }
 
 pub async fn _waveform(client: &reqwest::Client, waveform_url: &str) -> Result<Vec<u8>, Error> {

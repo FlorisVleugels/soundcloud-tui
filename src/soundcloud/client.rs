@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use std::error::Error;
 use std::fs::{self, File};
 use std::sync::{Arc, Mutex};
@@ -171,14 +172,16 @@ impl Client {
         }
     }
 
-    pub async fn streams(&mut self, app: &mut App) {
+    pub async fn streams(&mut self, app: &mut App) -> Result<(), anyhow::Error> {
         let token = self.access_token().await;
         if let Some(current_track) = &app.current_track {
-            let track_urn = &current_track.urn;
-            let response = api::streams(&token, &self.client, track_urn).await;
-            if let Ok(streams) = response {
-                app.playback = Some(Playback::init(streams));
-            }
+            let streams = api::streams(&token, &self.client, &current_track.urn).await?;
+            let hls_playlist =
+                api::hls_playlist(&token, &self.client, &streams.hls_mp3_128_url).await?;
+            app.playback = Some(Playback::init(hls_playlist));
+            Ok(())
+        } else {
+            Err(anyhow!("No current track to stream discovered"))
         }
     }
 

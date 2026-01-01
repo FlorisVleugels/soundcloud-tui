@@ -14,6 +14,7 @@
 ## Performance
 - Send multiple chunks at once to reduce cycles
 - Separate draw loop from io (not an issue yet, might never be)
+- Optimize parse_m3u8()
 
 ## Code
 - Cleanup Status Bar code
