@@ -27,13 +27,8 @@
 
 ## UI
 - Add scrolling/ paging through the boxes
-- Add highlight color to which pane is focused
 - Add configurable color themes
-- Fix body title depending on if its a playlist or library item
 
 ## Audio
 - Dont show warning messages from Rodio over tui
 - Improve error handling in playback.rs, shouldnt crash the app if something happens
-
-## Bugs?
-- Some fetch tracks doesnt work prolly cus json decode not working sometimes

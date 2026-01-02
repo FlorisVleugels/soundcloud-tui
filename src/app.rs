@@ -24,6 +24,7 @@ pub struct App {
     pub playlists_index: usize,
     pub library_index: usize,
     pub body_index: usize,
+    pub body_title: String,
 }
 
 pub enum Mode {
@@ -64,6 +65,7 @@ impl App {
             playlists_index: 0,
             library_index: 0,
             body_index: 0,
+            body_title: String::new(),
         }
     }
 
@@ -141,7 +143,7 @@ impl App {
         todo!()
     }
 
-    pub fn title(&self) -> &str {
+    pub fn set_title(&self) -> &str {
         &self
             .liked_playlists
             .as_ref()
@@ -154,6 +156,11 @@ impl App {
 
     pub fn toggle_help(&mut self) {
         self.show_help = !self.show_help
+    }
+
+    pub fn show_tracks(&mut self) {
+        self.body = Body::Tracks;
+        self.focus = Focus::Body;
     }
 
     pub fn set_track(&mut self) {
@@ -183,7 +190,7 @@ impl App {
 
     pub async fn play_track(&mut self) -> Result<(), Box<dyn Error>> {
         self.focus = Focus::Status;
-        self.playback.as_mut().unwrap().stream().await?;
+        self.playback.as_mut().unwrap().start().await?;
         Ok(())
     }
 

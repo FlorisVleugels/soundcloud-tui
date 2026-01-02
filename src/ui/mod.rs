@@ -44,6 +44,9 @@ pub fn render_app(frame: &mut Frame, app: &App) {
     draw_top_bar(frame, app, title_area);
     draw_body(frame, main_area, app);
     draw_status(frame, status_area, app);
+    if app.show_help {
+        draw_help(frame);
+    }
 }
 
 fn draw_top_bar(frame: &mut Frame, app: &App, rect: Rect) {
@@ -126,9 +129,6 @@ fn draw_body(frame: &mut Frame, rect: Rect, app: &App) {
     draw_main_panel(frame, body_area, app);
     draw_library(frame, top_area, app);
     draw_playlists(frame, bot_area, app);
-    if app.show_help {
-        draw_help(frame);
-    }
 }
 
 fn draw_main_panel(frame: &mut Frame, rect: Rect, app: &App) {
@@ -214,7 +214,7 @@ fn draw_tracks(frame: &mut Frame, rect: Rect, app: &App) {
                     Focus::Body => Color::Yellow,
                     _ => Color::default(),
                 })
-                .title(app.title()),
+                .title(&app.body_title[..]),
         );
         frame.render_widget(table, rect);
     } else {

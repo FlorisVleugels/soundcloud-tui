@@ -3,7 +3,7 @@ pub fn format_duration(duration: u64) -> String {
         format!("{}:{:02}", (duration / 60), (duration % 60))
     } else {
         format!(
-            "{}:{}:{:02}",
+            "{}:{:02}:{:02}",
             (duration / 3600),
             (duration % 3600 / 60),
             (duration % 60)

@@ -41,7 +41,7 @@ pub struct Track {
     pub user: User,
     pub metadata_artist: Option<String>,
     pub urn: String,
-    pub genre: String,
+    pub genre: Option<String>,
     pub waveform_url: String,
     pub waveform: Option<Vec<u8>>,
 }
@@ -81,8 +81,8 @@ impl Track {
         vec![
             &self.title,
             &self.user.username,
-            &self.genre,
-            &self.duration_str.as_ref().unwrap(),
+            &self.genre.as_deref().unwrap_or(""),
+            &self.duration_str.as_deref().unwrap_or(""),
         ]
     }
 }

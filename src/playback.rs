@@ -1,5 +1,4 @@
 use std::sync::{Arc, Mutex};
-use std::thread::sleep;
 use std::time::Duration;
 use std::{collections::VecDeque, io::Read};
 
@@ -130,11 +129,13 @@ impl Playback {
         }
     }
 
-    pub async fn stream(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn start(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         let stream_buffer = StreamBuffer::new();
         let buffer = Arc::clone(&stream_buffer.buffer);
 
-        let segment_urls: Vec<String> = self.hls_playlist.segments
+        let segment_urls: Vec<String> = self
+            .hls_playlist
+            .segments
             .iter()
             .map(|s| s.url.clone())
             .collect();
@@ -157,6 +158,8 @@ impl Playback {
                 } => {}
             }
         });
+
+        tokio::time::sleep(Duration::from_millis(1000)).await;
 
         let (tx, rx) = mpsc::channel(100);
         let decoder_token = self.token.clone();

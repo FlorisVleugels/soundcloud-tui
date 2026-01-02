@@ -127,6 +127,8 @@ impl Client {
                 util::convert_duration(track);
             }
             app.tracks = Some(tracks)
+        } else {
+            panic!("{:?}", response);
         }
     }
 

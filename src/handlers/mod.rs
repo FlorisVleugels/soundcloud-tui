@@ -1,6 +1,6 @@
 use std::sync::{Arc, Mutex};
 
-use crate::app::{App, Body, Focus, Mode};
+use crate::app::{App, Focus, Mode};
 use crate::soundcloud::client::Client;
 
 pub async fn enter(app: &mut App, client: &Arc<Mutex<Client>>) {
@@ -20,27 +20,27 @@ pub async fn enter(app: &mut App, client: &Arc<Mutex<Client>>) {
 
 pub async fn search(app: &mut App, client: &Arc<Mutex<Client>>) {
     client.lock().unwrap().search_tracks(app).await;
-    app.body = Body::Tracks;
-    app.focus = Focus::Body;
+    app.body_title = app.input.clone();
     app.mode = Mode::Normal;
+    app.show_tracks();
 }
 
 async fn open_playlist(app: &mut App, client: &Arc<Mutex<Client>>) {
     client.lock().unwrap().playlist_tracks(app).await;
-    app.body = Body::Tracks;
-    app.focus = Focus::Body;
+    app.body_title = app.set_title().to_string();
+    app.show_tracks();
 }
 
 fn open_recents(app: &mut App) {
     app.set_recents();
-    app.body = Body::Tracks;
-    app.focus = Focus::Body;
+    app.body_title = "Recently Played".to_string();
+    app.show_tracks();
 }
 
 async fn open_liked_tracks(app: &mut App, client: &Arc<Mutex<Client>>) {
     client.lock().unwrap().liked_tracks(app).await;
-    app.body = Body::Tracks;
-    app.focus = Focus::Body;
+    app.body_title = "Liked Tracks".to_string();
+    app.show_tracks();
 }
 
 async fn play_track(app: &mut App, client: &Arc<Mutex<Client>>) {
