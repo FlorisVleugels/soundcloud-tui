@@ -37,7 +37,7 @@ pub fn auth(frame: &mut Frame) {
     frame.render_widget(paragraph, frame.area());
 }
 
-pub fn render_app(frame: &mut Frame, app: &App) {
+pub fn render_app(frame: &mut Frame, app: &mut App) {
     let vertical = Layout::vertical(MAIN_CONSTRAINTS);
     let [title_area, main_area, status_area] = vertical.areas(frame.area());
 
@@ -119,7 +119,7 @@ fn draw_progress_bar(frame: &mut Frame, app: &App, track: &Track, rect: Rect) {
     frame.render_widget(progress_bar, rect);
 }
 
-fn draw_body(frame: &mut Frame, rect: Rect, app: &App) {
+fn draw_body(frame: &mut Frame, rect: Rect, app: &mut App) {
     let horizontal_body = Layout::horizontal(BODY_CONSTRAINTS);
     let [body_area, bar_area] = horizontal_body.areas(rect);
 
@@ -131,7 +131,7 @@ fn draw_body(frame: &mut Frame, rect: Rect, app: &App) {
     draw_playlists(frame, bot_area, app);
 }
 
-fn draw_main_panel(frame: &mut Frame, rect: Rect, app: &App) {
+fn draw_main_panel(frame: &mut Frame, rect: Rect, app: &mut App) {
     match app.body {
         Body::Welcome => draw_welcome(frame, rect),
         Body::Tracks => draw_tracks(frame, rect, app),
@@ -188,35 +188,26 @@ fn draw_playlists(frame: &mut Frame, rect: Rect, app: &App) {
     }
 }
 
-fn draw_tracks(frame: &mut Frame, rect: Rect, app: &App) {
+fn draw_tracks(frame: &mut Frame, rect: Rect, app: &mut App) {
     if let Some(tracks) = &app.tracks {
         let header = Row::new(vec!["Title", "Publisher", "Genre", "Duration"])
             .style(Color::Yellow)
             .bottom_margin(1);
         let mut rows = vec![header];
-        for (i, track) in tracks.collection.iter().enumerate() {
-            match app.focus {
-                Focus::Body => {
-                    if i == app.body_index {
-                        rows.push(Row::new(track.table_row_data()).style(Color::Yellow));
-                    } else {
-                        rows.push(Row::new(track.table_row_data()));
-                    }
-                }
-                _ => {
-                    rows.push(Row::new(track.table_row_data()));
-                }
-            }
+        for track in tracks.collection.iter() {
+            rows.push(Row::new(track.table_row_data()));
         }
-        let table = Table::new(rows, TRACKS_COLUMN_WIDTHS).block(
-            Block::bordered()
-                .border_style(match app.focus {
-                    Focus::Body => Color::Yellow,
-                    _ => Color::default(),
-                })
-                .title(&app.body_title[..]),
-        );
-        frame.render_widget(table, rect);
+        let table = Table::new(rows, TRACKS_COLUMN_WIDTHS)
+            .row_highlight_style(Color::Yellow)
+            .block(
+                Block::bordered()
+                    .border_style(match app.focus {
+                        Focus::Body => Color::Yellow,
+                        _ => Color::default(),
+                    })
+                    .title(&app.body_title[..]),
+            );
+        frame.render_stateful_widget(table, rect, &mut app.table_states.tracks);
     } else {
         frame.render_widget(Block::bordered().title("Tracks"), rect);
     }

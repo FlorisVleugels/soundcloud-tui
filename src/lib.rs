@@ -39,7 +39,7 @@ pub async fn run(terminal: &mut ratatui::DefaultTerminal) -> Result<(), Box<dyn 
     client.lock().unwrap().liked_playlists(&app).await;
 
     loop {
-        terminal.draw(|frame| ui::render_app(frame, &app.lock().unwrap()))?;
+        terminal.draw(|frame| ui::render_app(frame, &mut app.lock().unwrap()))?;
         if poll(Duration::from_secs(1))?
             && events::handle(&mut app.lock().unwrap(), &client).await?
         {

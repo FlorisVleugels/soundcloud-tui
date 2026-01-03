@@ -1,5 +1,6 @@
 use std::time::{Duration, SystemTime};
 
+use ratatui::widgets::TableState;
 use serde::{Deserialize, Serialize};
 
 pub struct AccessToken {
@@ -65,6 +66,11 @@ pub struct Streams {
     //pub preview_mp3_128_url: String,
 }
 
+pub struct TableStates {
+    pub tracks: TableState,
+    pub playlists: TableState,
+}
+
 #[derive(Debug)]
 pub struct HlsPlaylist {
     pub segments: Vec<HlsSegment>,
@@ -98,6 +104,15 @@ impl OauthTokens {
         SystemTime::now()
             .checked_add(Duration::from_secs(self.expires_in.into()))
             .unwrap()
+    }
+}
+
+impl TableStates {
+    pub fn init() -> Self {
+        TableStates {
+            tracks: TableState::default(),
+            playlists: TableState::default(),
+        }
     }
 }
 

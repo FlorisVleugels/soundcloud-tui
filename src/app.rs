@@ -2,7 +2,7 @@ use std::error::Error;
 
 use crate::{
     playback::Playback,
-    soundcloud::models::{Playlists, Track, Tracks},
+    soundcloud::models::{Playlists, TableStates, Track, Tracks},
     ui::constants::LIBRARY_ITEMS,
 };
 
@@ -19,6 +19,7 @@ pub struct App {
     pub liked_playlists: Option<Playlists>,
     pub tracks: Option<Tracks>,
     recents: Option<Tracks>,
+    pub table_states: TableStates,
     pub current_track: Option<Track>,
     pub search_index: usize,
     pub playlists_index: usize,
@@ -46,7 +47,8 @@ pub enum Body {
 }
 
 impl App {
-    pub const fn init() -> Self {
+    pub fn init() -> Self {
+        let table_states = TableStates::init();
         Self {
             input: String::new(),
             mode: Mode::Normal,
@@ -60,6 +62,7 @@ impl App {
             liked_playlists: None,
             tracks: None,
             recents: None,
+            table_states,
             current_track: None,
             search_index: 0,
             playlists_index: 0,
@@ -72,11 +75,7 @@ impl App {
     pub fn increase_index(&mut self) {
         match self.focus {
             Focus::Body => {
-                if self.body_index < self.tracks.as_ref().unwrap().collection.iter().len() - 1 {
-                    self.body_index += 1
-                } else {
-                    self.body_index = 0;
-                }
+                self.table_states.tracks.select_next();
             }
             Focus::Library => {
                 if self.library_index < LIBRARY_ITEMS.len() - 1 {
@@ -108,11 +107,7 @@ impl App {
     pub fn decrease_index(&mut self) {
         match self.focus {
             Focus::Body => {
-                if self.body_index == 0 {
-                    self.body_index = self.tracks.as_ref().unwrap().collection.iter().len() - 1
-                } else {
-                    self.body_index -= 1
-                }
+                self.table_states.tracks.select_previous();
             }
             Focus::Library => {
                 if self.library_index == 0 {
