@@ -2,8 +2,7 @@ use std::error::Error;
 
 use crate::{
     playback::Playback,
-    soundcloud::models::{Playlists, TableStates, Track, Tracks},
-    ui::constants::LIBRARY_ITEMS,
+    soundcloud::models::{Playlists, States, Track, Tracks},
 };
 
 pub struct App {
@@ -19,12 +18,9 @@ pub struct App {
     pub liked_playlists: Option<Playlists>,
     pub tracks: Option<Tracks>,
     recents: Option<Tracks>,
-    pub table_states: TableStates,
+    pub states: States,
     pub current_track: Option<Track>,
     pub search_index: usize,
-    pub playlists_index: usize,
-    pub library_index: usize,
-    pub body_index: usize,
     pub body_title: String,
 }
 
@@ -48,7 +44,7 @@ pub enum Body {
 
 impl App {
     pub fn init() -> Self {
-        let table_states = TableStates::init();
+        let states = States::init();
         Self {
             input: String::new(),
             mode: Mode::Normal,
@@ -62,80 +58,29 @@ impl App {
             liked_playlists: None,
             tracks: None,
             recents: None,
-            table_states,
+            states,
             current_track: None,
             search_index: 0,
-            playlists_index: 0,
-            library_index: 0,
-            body_index: 0,
             body_title: String::new(),
         }
     }
 
-    pub fn increase_index(&mut self) {
+    pub fn next(&mut self) {
         match self.focus {
-            Focus::Body => {
-                self.table_states.tracks.select_next();
-            }
-            Focus::Library => {
-                if self.library_index < LIBRARY_ITEMS.len() - 1 {
-                    self.library_index += 1
-                } else {
-                    self.library_index = 0;
-                }
-            }
-            Focus::Playlists => {
-                if self.playlists_index
-                    < self
-                        .liked_playlists
-                        .as_ref()
-                        .unwrap()
-                        .collection
-                        .iter()
-                        .len()
-                        - 1
-                {
-                    self.playlists_index += 1
-                } else {
-                    self.playlists_index = 0;
-                }
-            }
-            _ => {}
+            Focus::Body => self.states.tracks.select_next(),
+            Focus::Library => self.states.library.select_next(),
+            Focus::Playlists => self.states.playlists.select_next(),
+            Focus::Status => unimplemented!(),
         }
     }
 
-    pub fn decrease_index(&mut self) {
+    pub fn previous(&mut self) {
         match self.focus {
-            Focus::Body => {
-                self.table_states.tracks.select_previous();
-            }
-            Focus::Library => {
-                if self.library_index == 0 {
-                    self.library_index = LIBRARY_ITEMS.len() - 1
-                } else {
-                    self.library_index -= 1
-                }
-            }
-            Focus::Playlists => {
-                if self.playlists_index == 0 {
-                    self.playlists_index = self
-                        .liked_playlists
-                        .as_ref()
-                        .unwrap()
-                        .collection
-                        .iter()
-                        .len()
-                        - 1
-                } else {
-                    self.playlists_index -= 1
-                }
-            }
-            _ => {}
+            Focus::Body => self.states.tracks.select_previous(),
+            Focus::Library => self.states.library.select_previous(),
+            Focus::Playlists => self.states.playlists.select_previous(),
+            Focus::Status => unimplemented!(),
         }
-    }
-
-    fn _increase(_i: &mut usize, _length: &usize) {
-        todo!()
     }
 
     pub fn set_title(&self) -> &str {
@@ -144,7 +89,7 @@ impl App {
             .as_ref()
             .unwrap()
             .collection
-            .get(self.playlists_index)
+            .get(self.states.playlists.selected().unwrap())
             .unwrap()
             .title
     }
@@ -156,11 +101,13 @@ impl App {
     pub fn show_tracks(&mut self) {
         self.body = Body::Tracks;
         self.focus = Focus::Body;
+        self.states.tracks.select(Some(0));
     }
 
     pub fn set_track(&mut self) {
+        let i = self.states.tracks.selected().unwrap();
         if let Some(tracks) = &self.tracks {
-            let track = tracks.collection.get(self.body_index).unwrap().clone();
+            let track = tracks.collection.get(i).unwrap().clone();
             self.update_recents(track.clone());
             self.current_track = Some(track);
         }

@@ -15,6 +15,7 @@
 - Send multiple chunks at once to reduce cycles
 - Separate draw loop from io (not an issue yet, might never be)
 - Optimize parse_m3u8()
+- Dont recompute scrollbar_state on every render, should just update the position
 
 ## Code
 - Cleanup Status Bar code

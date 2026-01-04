@@ -1,4 +1,7 @@
-use ratatui::layout::Constraint;
+use ratatui::{
+    layout::Constraint,
+    widgets::{Scrollbar, ScrollbarOrientation},
+};
 
 pub const HEADER_ASCII: &str = r#"
   _________                        .___     .__                   .___          __        .__ 
@@ -51,3 +54,7 @@ pub const STATUS_BAR_VERTICAL: [Constraint; 3] = [
     Constraint::Percentage(20),
     Constraint::Percentage(10),
 ];
+
+pub const SCROLLBAR: Scrollbar = Scrollbar::new(ScrollbarOrientation::VerticalRight)
+    .begin_symbol(Some("↑"))
+    .end_symbol(Some("↓"));

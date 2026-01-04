@@ -7,7 +7,7 @@ pub async fn enter(app: &mut App, client: &Arc<Mutex<Client>>) {
     match app.focus {
         Focus::Playlists => open_playlist(app, client).await,
         Focus::Library => {
-            match app.library_index {
+            match app.states.library.selected().unwrap() {
                 0 => open_recents(app),
                 1 => open_liked_tracks(app, client).await,
                 _ => unimplemented!(), // Potentially other library items (Artists / Albums etc),

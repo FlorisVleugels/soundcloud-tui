@@ -7,7 +7,8 @@ use ratatui::{
     style::{Color, Style, Stylize},
     text::{Line, Span, Text},
     widgets::{
-        Bar, BarChart, BarGroup, Block, Borders, Clear, Gauge, Padding, Paragraph, Row, Table, Wrap,
+        Bar, BarChart, BarGroup, Block, Borders, Clear, Gauge, List, Padding, Paragraph, Row,
+        Scrollbar, ScrollbarOrientation, ScrollbarState, Table, Wrap,
     },
 };
 
@@ -158,31 +159,34 @@ fn draw_welcome(frame: &mut Frame, rect: Rect) {
     frame.render_widget(paragraph, rect);
 }
 
-fn draw_playlists(frame: &mut Frame, rect: Rect, app: &App) {
+fn draw_playlists(frame: &mut Frame, rect: Rect, app: &mut App) {
     if let Some(playlists) = &app.liked_playlists {
         let mut titles = vec![];
-        for (i, playlist) in playlists.collection.iter().enumerate() {
-            match app.focus {
-                Focus::Playlists => {
-                    if i == app.playlists_index {
-                        titles.push(Line::from(&playlist.title[..]).style(Color::Yellow));
-                    } else {
-                        titles.push(Line::from(&playlist.title[..]));
-                    }
-                }
-                _ => {
-                    titles.push(Line::from(&playlist.title[..]));
-                }
-            }
+        for playlist in playlists.collection.iter() {
+            titles.push(Line::from(&playlist.title[..]));
         }
-        let paragraph =
-            Paragraph::new(titles).block(Block::bordered().title("Playlists").border_style(
-                match app.focus {
+        let mut scrollbar_state =
+            ScrollbarState::new(titles.len()).position(app.states.playlists.selected().unwrap());
+        let list = List::new(titles).highlight_style(Color::Yellow).block(
+            Block::bordered()
+                .title("Playlists")
+                .border_style(match app.focus {
                     Focus::Playlists => Color::Yellow,
                     _ => Color::default(),
-                },
-            ));
-        frame.render_widget(paragraph, rect);
+                }),
+        );
+        match app.focus {
+            Focus::Playlists => frame.render_stateful_widget(list, rect, &mut app.states.playlists),
+            _ => frame.render_widget(list, rect),
+        }
+        frame.render_stateful_widget(
+            SCROLLBAR,
+            rect.inner(Margin {
+                vertical: 1,
+                horizontal: 0,
+            }),
+            &mut scrollbar_state,
+        );
     } else {
         frame.render_widget(Block::bordered().title("Playlists"), rect);
     }
@@ -193,10 +197,12 @@ fn draw_tracks(frame: &mut Frame, rect: Rect, app: &mut App) {
         let header = Row::new(vec!["Title", "Publisher", "Genre", "Duration"])
             .style(Color::Yellow)
             .bottom_margin(1);
-        let mut rows = vec![header];
+        let mut rows = Vec::new();
         for track in tracks.collection.iter() {
             rows.push(Row::new(track.table_row_data()));
         }
+        let mut scrollbar_state =
+            ScrollbarState::new(rows.len()).position(app.states.tracks.selected().unwrap());
         let table = Table::new(rows, TRACKS_COLUMN_WIDTHS)
             .row_highlight_style(Color::Yellow)
             .block(
@@ -206,27 +212,32 @@ fn draw_tracks(frame: &mut Frame, rect: Rect, app: &mut App) {
                         _ => Color::default(),
                     })
                     .title(&app.body_title[..]),
-            );
-        frame.render_stateful_widget(table, rect, &mut app.table_states.tracks);
+            )
+            .header(header);
+        match app.focus {
+            Focus::Body => frame.render_stateful_widget(table, rect, &mut app.states.tracks),
+            _ => frame.render_widget(table, rect),
+        }
+        frame.render_stateful_widget(
+            SCROLLBAR,
+            rect.inner(Margin {
+                vertical: 1,
+                horizontal: 0,
+            }),
+            &mut scrollbar_state,
+        );
     } else {
         frame.render_widget(Block::bordered().title("Tracks"), rect);
     }
 }
 
-fn draw_library(frame: &mut Frame, rect: Rect, app: &App) {
+fn draw_library(frame: &mut Frame, rect: Rect, app: &mut App) {
     let mut lines = vec![];
-    for (i, &item) in LIBRARY_ITEMS.iter().enumerate() {
-        match app.focus {
-            Focus::Library => lines.push(Line::from(item).style(if app.library_index == i {
-                Color::Yellow
-            } else {
-                Color::default()
-            })),
-            _ => lines.push(Line::from(item)),
-        }
+    for &item in LIBRARY_ITEMS.iter() {
+        lines.push(Line::from(item));
     }
 
-    let paragraph = Paragraph::new(lines).block(
+    let list = List::new(lines).highlight_style(Color::Yellow).block(
         Block::bordered()
             .border_style(match app.focus {
                 Focus::Library => Color::Yellow,
@@ -234,7 +245,10 @@ fn draw_library(frame: &mut Frame, rect: Rect, app: &App) {
             })
             .title("Library"),
     );
-    frame.render_widget(paragraph, rect);
+    match app.focus {
+        Focus::Library => frame.render_stateful_widget(list, rect, &mut app.states.library),
+        _ => frame.render_widget(list, rect),
+    }
 }
 
 fn draw_search(frame: &mut Frame, app: &App, rect: Rect) {

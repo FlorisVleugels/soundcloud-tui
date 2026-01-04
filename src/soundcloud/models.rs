@@ -1,6 +1,6 @@
 use std::time::{Duration, SystemTime};
 
-use ratatui::widgets::TableState;
+use ratatui::widgets::{ListState, TableState};
 use serde::{Deserialize, Serialize};
 
 pub struct AccessToken {
@@ -66,9 +66,10 @@ pub struct Streams {
     //pub preview_mp3_128_url: String,
 }
 
-pub struct TableStates {
+pub struct States {
     pub tracks: TableState,
-    pub playlists: TableState,
+    pub playlists: ListState,
+    pub library: ListState,
 }
 
 #[derive(Debug)]
@@ -107,11 +108,12 @@ impl OauthTokens {
     }
 }
 
-impl TableStates {
+impl States {
     pub fn init() -> Self {
-        TableStates {
-            tracks: TableState::default(),
-            playlists: TableState::default(),
+        States {
+            tracks: TableState::default().with_selected(Some(0)),
+            playlists: ListState::default().with_selected(Some(0)),
+            library: ListState::default().with_selected(Some(0)),
         }
     }
 }

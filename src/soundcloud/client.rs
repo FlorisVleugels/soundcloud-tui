@@ -162,7 +162,7 @@ impl Client {
             .as_ref()
             .unwrap()
             .collection
-            .get(app.playlists_index)
+            .get(app.states.playlists.selected().unwrap())
             .unwrap()
             .tracks_uri;
         let response = api::playlist_tracks(&token, &self.client, tracks_url).await;
