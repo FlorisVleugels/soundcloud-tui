@@ -18,6 +18,24 @@ pub async fn enter(app: &mut App, client: &Arc<Mutex<Client>>) {
     }
 }
 
+pub async fn toggle_like(app: &mut App, client: &Arc<Mutex<Client>>) {
+    if let Some(tracks) = &mut app.tracks {
+        let i = app.states.tracks.selected().unwrap();
+        let track = tracks.collection.get_mut(i).unwrap();
+        match track.user_favorite {
+            true => {
+                client.lock().unwrap().unlike_track(&track.urn[..]).await;
+                track.user_favorite = false;
+            },
+            false => {
+                client.lock().unwrap().like_track(&track.urn[..]).await;
+                track.user_favorite = true;
+            }
+        }
+    }
+
+}
+
 pub async fn search(app: &mut App, client: &Arc<Mutex<Client>>) {
     client.lock().unwrap().search_tracks(app).await;
     app.body_title = app.input.clone();

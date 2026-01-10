@@ -85,11 +85,51 @@ pub async fn search_tracks(
     Ok(response)
 }
 
+pub async fn like_track(
+    access_token: &String,
+    client: &reqwest::Client,
+    track_urn: &str,
+) -> Result<(), Error> {
+    let url = format!("{}/likes/tracks/{}", BASE_URL, track_urn);
+    let _ = client
+        .post(url)
+        .header("accept", "application/json; charset=utf-8")
+        .header("Authorization", format!("OAuth {}", access_token))
+        .send()
+        .await?;
+
+    Ok(())
+}
+
+pub async fn unlike_track(
+    access_token: &String,
+    client: &reqwest::Client,
+    track_urn: &str,
+) -> Result<(), Error> {
+    let url = format!("{}/likes/tracks/{}", BASE_URL, track_urn);
+    let _ = client
+        .delete(url)
+        .header("accept", "application/json; charset=utf-8")
+        .header("Authorization", format!("OAuth {}", access_token))
+        .send()
+        .await?;
+
+    Ok(())
+}
+
+pub async fn _like_playlist() {
+    
+}
+
+pub async fn _unlike_playlist() {
+    
+}
+
 pub async fn liked_playlists(
     access_token: &String,
     client: &reqwest::Client,
 ) -> Result<Playlists, Error> {
-    let limit = "limit=20";
+    let limit = "limit=40";
     let url = format!(
         "{}me/likes/playlists?{}&linked_partitioning=true",
         BASE_URL, limit
@@ -110,7 +150,7 @@ pub async fn liked_tracks(
     access_token: &String,
     client: &reqwest::Client,
 ) -> Result<Tracks, Error> {
-    let limit = "limit=20";
+    let limit = "limit=40";
     let access = "access=playable";
     let url = format!(
         "{}me/likes/tracks?{}&{}&linked_partitioning=true",

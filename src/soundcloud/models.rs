@@ -40,6 +40,7 @@ pub struct Track {
     pub duration: u64,
     pub duration_str: Option<String>,
     pub user: User,
+    pub user_favorite: bool,
     pub metadata_artist: Option<String>,
     pub urn: String,
     pub genre: Option<String>,
@@ -90,6 +91,7 @@ impl Track {
             &self.user.username,
             &self.genre.as_deref().unwrap_or(""),
             &self.duration_str.as_deref().unwrap_or(""),
+            if self.user_favorite { "❤️" } else { "" },
         ]
     }
 }

@@ -83,6 +83,10 @@ impl App {
         }
     }
 
+    pub fn _reset_index() {
+        todo!()
+    }
+
     pub fn set_title(&self) -> &str {
         &self
             .liked_playlists
@@ -176,10 +180,6 @@ impl App {
 
     fn clamp_cursor(&self, new_cursor_pos: usize) -> usize {
         new_cursor_pos.clamp(0, self.input.chars().count())
-    }
-
-    pub fn _reset_index() {
-        todo!()
     }
 
     pub fn set_recents(&mut self) {

@@ -194,7 +194,7 @@ fn draw_playlists(frame: &mut Frame, rect: Rect, app: &mut App) {
 
 fn draw_tracks(frame: &mut Frame, rect: Rect, app: &mut App) {
     if let Some(tracks) = &app.tracks {
-        let header = Row::new(vec!["Title", "Publisher", "Genre", "Duration"])
+        let header = Row::new(vec!["Title", "Publisher", "Genre", "Duration", ""])
             .style(Color::Yellow)
             .bottom_margin(1);
         let mut rows = Vec::new();

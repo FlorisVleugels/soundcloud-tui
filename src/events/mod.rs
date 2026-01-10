@@ -13,6 +13,7 @@ pub async fn handle(app: &mut App, client: &Arc<Mutex<Client>>) -> std::io::Resu
                 KeyCode::Char('/') => app.mode = Mode::Editing,
                 KeyCode::Char('j') => app.next(),
                 KeyCode::Char('k') => app.previous(),
+                KeyCode::Char('s') => handlers::toggle_like(app, client).await,
                 KeyCode::Char('l') => app.focus = Focus::Library,
                 KeyCode::Char('p') => app.focus = Focus::Playlists,
                 KeyCode::Char(' ') => app.toggle_playback(),

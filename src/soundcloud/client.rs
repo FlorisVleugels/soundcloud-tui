@@ -136,6 +136,24 @@ impl Client {
         todo!()
     }
 
+    pub async fn like_track(&mut self, track_urn: &str) {
+        let token = self.access_token().await;
+        api::like_track(&token, &self.client, track_urn).await;
+    }
+
+    pub async fn unlike_track(&mut self, track_urn: &str) {
+        let token = self.access_token().await;
+        api::unlike_track(&token, &self.client, track_urn).await;
+    }
+
+    pub async fn _like_playlist(&mut self, app: &mut App) {
+        todo!()
+    }
+
+    pub async fn _unlike_playlist(&mut self, app: &mut App) {
+        todo!()
+    }
+
     pub async fn liked_playlists(&mut self, app: &Arc<Mutex<App>>) {
         let token = self.access_token().await;
         let response = api::liked_playlists(&token, &self.client).await;
@@ -150,6 +168,7 @@ impl Client {
         if let Ok(mut tracks) = response {
             for track in &mut tracks.collection {
                 util::convert_duration(track);
+                track.user_favorite = true; // Soundcloud API bugged?
             }
             app.tracks = Some(tracks)
         }

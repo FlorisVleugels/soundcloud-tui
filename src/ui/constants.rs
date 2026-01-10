@@ -26,11 +26,12 @@ pub const BODY_CONSTRAINTS: [Constraint; 2] =
 pub const BODY_BAR_CONSTRAINTS: [Constraint; 2] =
     [Constraint::Percentage(20), Constraint::Percentage(80)];
 
-pub const TRACKS_COLUMN_WIDTHS: [Constraint; 4] = [
+pub const TRACKS_COLUMN_WIDTHS: [Constraint; 5] = [
     Constraint::Percentage(40),
     Constraint::Percentage(20),
     Constraint::Percentage(20),
-    Constraint::Percentage(20),
+    Constraint::Percentage(15),
+    Constraint::Percentage(5),
 ];
 pub const HELP_WINDOW_CONSTRANTS: [Constraint; 3] = [
     Constraint::Percentage(10),
